@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inbox - Elite Nexus</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body style="background-color: #0d1117; color: white; margin: 0; padding-bottom: 70px;">
+
+    <div style="padding: 20px; border-bottom: 1px solid #30363d;">
+        <h3 style="margin: 0; color: #58a6ff;">📧 Inbox Messages</h3>
+    </div>
+
+    <div id="messageList" style="padding: 15px;">
+        <p id="loadingText">Loading messages...</p>
+    </div>
+
+    <div style="position: fixed; bottom: 0; width: 100%; background: #161b22; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #30363d;">
+        <button onclick="location.href='inbox.html'" style="background:none; border:none; color:#58a6ff; cursor:pointer;">📧 Inbox</button>
+        <button onclick="location.href='home.html'" style="background:none; border:none; color:gray; cursor:pointer;">🏠 Home</button>
+        <button onclick="location.href='account.html'" style="background:none; border:none; color:gray; cursor:pointer;">👤 Account</button>
+    </div>
+
+    <script>
+        const user = JSON.parse(sessionStorage.getItem('user'));
+        if(!user) location.href = 'index.html';
+
+        async function loadMessages() {
+            const SHEETDB_URL = "https://sheetdb.io/api/v1/3dn8ej3m7h685";
+            try {
+                // নিরাপত্তা: শুধুমাত্র এই ইউজারের Game_ID এর মেসেজগুলো আনবে
+                const response = await fetch(`${SHEETDB_URL}/search?sheet=Notifications&Game_ID=${user.gameId}`);
+                const messages = await response.json();
+                
+                const list = document.getElementById('messageList');
+                list.innerHTML = "";
+
+                if(messages.length === 0) {
+                    list.innerHTML = "<p style='color:gray;'>No messages found.</p>";
+                    return;
+                }
+
+                // নতুন মেসেজগুলো আগে দেখাবে (Reverse)
+                messages.reverse().forEach(msg => {
+                    list.innerHTML += `
+                        <div style="background:#161b22; padding:15px; border-radius:10px; margin-bottom:10px; border-left: 4px solid #58a6ff;">
+                            <div style="font-size:12px; color:gray; margin-bottom:5px;">${msg.Time}</div>
+                            <div style="font-size:14px;">${msg.Message}</div>
+                        </div>
+                    `;
+                });
+            } catch (err) {
+                document.getElementById('loadingText').innerText = "Failed to load messages.";
+            }
+        }
+        loadMessages();
+    </script>
+</body>
+          </html>
+          
