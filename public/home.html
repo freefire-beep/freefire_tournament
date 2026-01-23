@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elite Nexus - Home</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body style="background-color: #0d1117; color: white; margin: 0; padding-bottom: 70px;">
+
+    <div style="padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #30363d;">
+        <h3 style="color: #58a6ff; margin: 0;">ELITE NEXUS</h3>
+        <div style="background: #161b22; padding: 5px 12px; border-radius: 20px; border: 1px solid #58a6ff;">
+            <span id="userCoins">0</span> 🪙
+        </div>
+    </div>
+
+    <div id="packageContainer" style="padding: 15px;">
+        </div>
+
+    <div style="position: fixed; bottom: 0; width: 100%; background: #161b22; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #30363d;">
+        <button onclick="location.href='inbox.html'" style="background:none; border:none; color:gray; cursor:pointer;">📧 Inbox</button>
+        <button onclick="location.href='home.html'" style="background:none; border:none; color:#58a6ff; cursor:pointer;">🏠 Home</button>
+        <button onclick="location.href='account.html'" style="background:none; border:none; color:gray; cursor:pointer;">👤 Account</button>
+    </div>
+
+    <script>
+        // লগইন চেক এবং ডাটা লোড
+        const user = JSON.parse(sessionStorage.getItem('user'));
+        if(!user) location.href = 'index.html';
+
+        document.getElementById('userCoins').innerText = user.coins;
+
+        // প্যাকেজ ডাটা (এটি আপনি চাইলে API থেকেও আনতে পারেন)
+        const packages = [
+            { id: "p1", title: "Solo • Rapid Match", fee: 5 },
+            { id: "p2", title: "Solo • Ranked Clash", fee: 10 },
+            { id: "p3", title: "Duo • Tactical", fee: 20 },
+            { id: "p4", title: "Squad • Battle", fee: 30 },
+            { id: "p5", title: "Mega Tournament", fee: 50 }
+        ];
+
+        const container = document.getElementById('packageContainer');
+        packages.forEach(pkg => {
+            container.innerHTML += `
+                <div style="background:#161b22; padding:15px; border-radius:10px; margin-bottom:15px; display:flex; justify-content:space-between; align-items:center; border:1px solid #30363d;">
+                    <div>
+                        <h4 style="margin:0;">৳ ${pkg.fee}</h4>
+                        <small style="color:gray;">${pkg.title}</small>
+                    </div>
+                    <button onclick="buyPackage('${pkg.id}', ${pkg.fee}, '${pkg.title}')" style="background:linear-gradient(to right, #00d2ff, #3a7bd5); color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer; font-weight:bold;">Join</button>
+                </div>
+            `;
+        });
+
+        async function buyPackage(id, fee, title) {
+            if(!confirm(`আপনি কি ${fee} কয়েন দিয়ে ${title} প্যাকেজটি কিনতে চান?`)) return;
+
+            try {
+                const response = await fetch('/api/purchase', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ gameId: user.gameId, fee, packageName: title, userName: user.name })
+                });
+
+                const data = await response.json();
+                if(response.ok) {
+                    alert("সফলভাবে কেনা হয়েছে!");
+                    user.coins -= fee; // লোকাল ডিসপ্লে আপডেট
+                    sessionStorage.setItem('user', JSON.stringify(user));
+                    location.reload();
+                } else {
+                    alert(data.message);
+                }
+            } catch (err) {
+                alert("নেটওয়ার্ক সমস্যা! আবার চেষ্টা করুন।");
+            }
+        }
+    </script>
+</body>
+  </html>
+  
