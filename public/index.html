@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Elite Nexus</title>
+    <style>
+        body { background-color: #0d1117; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .login-card { background: #161b22; padding: 30px; border-radius: 15px; width: 300px; text-align: center; border: 1px solid #30363d; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 5px; border: 1px solid #30363d; background: #0d1117; color: white; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: linear-gradient(to right, #00d2ff, #3a7bd5); border: none; border-radius: 5px; color: white; cursor: pointer; font-weight: bold; }
+        #error-msg { color: #ff7b72; font-size: 13px; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <h2 style="color: #58a6ff;">ELITE NEXUS</h2>
+        <p style="color: gray; font-size: 14px;">Login with Game UID</p>
+        <input type="number" id="gameId" placeholder="Game UID (1818398816)">
+        <input type="password" id="pin" placeholder="PIN Number (123)">
+        <button id="loginBtn" onclick="handleLogin()">LOGIN</button>
+        <p id="error-msg"></p>
+        <p style="font-size: 12px; margin-top: 15px;">New player? <a href="register.html" style="color: #58a6ff; text-decoration: none;">Create Account</a></p>
+    </div>
+
+    <script>
+        async function handleLogin() {
+            const gameId = document.getElementById('gameId').value;
+            const pin = document.getElementById('pin').value;
+            const errorMsg = document.getElementById('error-msg');
+            const btn = document.getElementById('loginBtn');
+
+            if(!gameId || !pin) {
+                errorMsg.innerText = "সবগুলো ঘর পূরণ করুন!";
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerText = "Checking...";
+
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ gameId, pin })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    sessionStorage.setItem('user', JSON.stringify(data.user));
+                    window.location.href = 'home.html';
+                } else {
+                    errorMsg.innerText = data.message;
+                    btn.disabled = false;
+                    btn.innerText = "LOGIN";
+                }
+            } catch (err) {
+                errorMsg.innerText = "সার্ভার এরর!";
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+      </html>
+      
