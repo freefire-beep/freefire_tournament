@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account - Elite Nexus</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body style="background-color: #0d1117; color: white; margin: 0; padding-bottom: 70px;">
+
+    <div style="background: linear-gradient(to bottom, #161b22, #0d1117); padding: 30px 20px; text-align: center; border-bottom: 1px solid #30363d;">
+        <div style="width: 80px; height: 80px; background: #58a6ff; border-radius: 50%; margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; font-size: 30px;">
+            👤
+        </div>
+        <h2 id="accName" style="margin: 5px 0;">Loading...</h2>
+        <p style="color: gray; margin: 0;">UID: <span id="accId">0000</span></p>
+        <div style="margin-top: 15px; display: inline-block; background: #238636; padding: 5px 15px; border-radius: 20px; font-weight: bold;">
+            Coins: <span id="accCoins">0</span> 🪙
+        </div>
+    </div>
+
+    <div style="padding: 20px;">
+        <h4 style="color: #58a6ff;">My Purchases</h4>
+        <div id="orderList">
+            <p style="color:gray;">Loading history...</p>
+        </div>
+    </div>
+
+    <button onclick="logout()" style="display:block; margin: 20px auto; background: #da3633; color: white; border: none; padding: 10px 30px; border-radius: 5px; cursor: pointer;">Logout</button>
+
+    <div style="position: fixed; bottom: 0; width: 100%; background: #161b22; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #30363d;">
+        <button onclick="location.href='inbox.html'" style="background:none; border:none; color:gray; cursor:pointer;">📧 Inbox</button>
+        <button onclick="location.href='home.html'" style="background:none; border:none; color:gray; cursor:pointer;">🏠 Home</button>
+        <button onclick="location.href='account.html'" style="background:none; border:none; color:#58a6ff; cursor:pointer;">👤 Account</button>
+    </div>
+
+    <script>
+        const user = JSON.parse(sessionStorage.getItem('user'));
+        if(!user) location.href = 'index.html';
+
+        // প্রোফাইল ডাটা সেট করা
+        document.getElementById('accName').innerText = user.name;
+        document.getElementById('accId').innerText = user.gameId;
+        document.getElementById('accCoins').innerText = user.coins;
+
+        async function loadOrders() {
+            const SHEETDB_URL = "https://sheetdb.io/api/v1/3dn8ej3m7h685";
+            try {
+                const response = await fetch(`${SHEETDB_URL}/search?sheet=Orders&Game_ID=${user.gameId}`);
+                const orders = await response.json();
+                
+                const list = document.getElementById('orderList');
+                list.innerHTML = "";
+
+                if(orders.length === 0) {
+                    list.innerHTML = "<p style='color:gray;'>No purchases yet.</p>";
+                    return;
+                }
+
+                orders.reverse().forEach(order => {
+                    list.innerHTML += `
+                        <div style="background:#161b22; padding:12px; border-radius:8px; margin-bottom:10px; border: 1px solid #30363d; display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <div style="font-weight:bold;">${order.Package}</div>
+                                <div style="font-size:11px; color:gray;">${order.Time}</div>
+                            </div>
+                            <div style="color: #238636; font-size: 13px;">● ${order.Status}</div>
+                        </div>
+                    `;
+                });
+            } catch (err) {
+                document.getElementById('orderList').innerText = "Failed to load history.";
+            }
+        }
+
+        function logout() {
+            sessionStorage.clear();
+            location.href = 'index.html';
+        }
+
+        loadOrders();
+    </script>
+</body>
+</html>
