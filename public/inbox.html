@@ -4,89 +4,68 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inbox - Elite Nexus</title>
-    <style>
-        body { background-color: #0d1117; color: white; font-family: sans-serif; margin: 0; padding-bottom: 80px; }
-        .header { padding: 20px; border-bottom: 1px solid #30363d; background: #161b22; position: sticky; top: 0; z-index: 100; }
-        .message-card { 
-            background: #161b22; padding: 15px; border-radius: 10px; 
-            margin: 12px; border: 1px solid #30363d; border-left: 4px solid #58a6ff; 
-            animation: fadeIn 0.5s ease-in;
-        }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .nav-bar { position: fixed; bottom: 0; width: 100%; background: #161b22; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #30363d; }
-        .nav-btn { background: none; border: none; color: gray; cursor: pointer; font-size: 14px; display: flex; flex-direction: column; align-items: center; text-decoration: none; }
-        .nav-btn.active { color: #58a6ff; font-weight: bold; }
-        .time { font-size: 10px; color: gray; }
-        .system-tag { font-size: 11px; color: #58a6ff; font-weight: bold; }
-        #loadingText { text-align: center; color: gray; margin-top: 50px; }
-    </style>
 </head>
-<body>
+<body style="background-color: #0d1117; color: white; margin: 0; padding-bottom: 70px; font-family: sans-serif;">
 
-    <div class="header">
+    <div style="padding: 20px; border-bottom: 1px solid #30363d; background: #161b22;">
         <h3 style="margin: 0; color: #58a6ff;">📧 Inbox Messages</h3>
     </div>
 
-    <div id="messageList">
-        <p id="loadingText">Loading messages...</p>
+    <div id="messageList" style="padding: 15px;">
+        <p id="loadingText" style="text-align: center; color: gray;">Loading messages...</p>
     </div>
 
-    <div class="nav-bar">
-        <button class="nav-btn" onclick="location.href='home.html'">🏠 <span>Home</span></button>
-        <button class="nav-btn active" onclick="location.reload()">📧 <span>Inbox</span></button>
-        <button class="nav-btn" onclick="location.href='account.html'">👤 <span>Profile</span></button>
+    <div style="position: fixed; bottom: 0; width: 100%; background: #161b22; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #30363d;">
+        <button onclick="location.reload()" style="background:none; border:none; color:#58a6ff; cursor:pointer; font-weight:bold;">📧 Inbox</button>
+        <button onclick="location.href='home.html'" style="background:none; border:none; color:gray; cursor:pointer;">🏠 Home</button>
+        <button onclick="location.href='account.html'" style="background:none; border:none; color:gray; cursor:pointer;">👤 Profile</button>
     </div>
 
     <script>
-        // সেশন চেক
         const user = JSON.parse(sessionStorage.getItem('user'));
         if (!user) { location.href = 'index.html'; }
 
-        async function initInbox() {
+        async function loadInbox() {
             const list = document.getElementById('messageList');
-            
             try {
-                // ১. মেসেজ লোড করা (get-messages.js এপিআই এর মাধ্যমে)
+                // ১. মেসেজ ফেচ করা
                 const response = await fetch(`/api/get-messages?gameId=${user.gameId}`);
-                if (!response.ok) throw new Error("Fetch failed");
+                const messages = await response.json();
                 
-                let messages = await response.json();
                 list.innerHTML = ""; 
 
                 if (!messages || messages.length === 0) {
-                    list.innerHTML = "<p style='text-align: center; color:gray; margin-top: 40px;'>কোন মেসেজ পাওয়া যায়নি।</p>";
+                    list.innerHTML = "<p style='text-align: center; color:gray;'>কোন মেসেজ পাওয়া যায়নি।</p>";
                     return;
                 }
 
+                // মেসেজগুলো সুন্দর করে সাজানো
                 messages.reverse().forEach(msg => {
                     list.innerHTML += `
-                        <div class="message-card">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                                <span class="system-tag">SYSTEM</span>
-                                <span class="time">${msg.Time || 'Just Now'}</span>
+                        <div style="background:#161b22; padding:15px; border-radius:10px; margin-bottom:12px; border: 1px solid #30363d; border-left: 4px solid #58a6ff;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span style="font-size:11px; color:#58a6ff; font-weight: bold;">SYSTEM</span>
+                                <span style="font-size:10px; color:gray;">${msg.Time || ''}</span>
                             </div>
-                            <div style="font-size:14px; line-height: 1.5; color: #e6edf3;">${msg.Message}</div>
+                            <div style="font-size:14px; color: #e6edf3;">${msg.Message}</div>
                         </div>
                     `;
                 });
 
-                // ২. মেসেজগুলো 'Seen' মার্ক করা (নতুন mark-read.js এপিআই এর মাধ্যমে)
-                // এটি ব্যাকএন্ডে কাজ করবে, তাই URL এখানে দেখা যাবে না
-                await fetch('/api/mark-read', {
+                // ২. মেসেজগুলো 'Seen' মার্ক করার জন্য ব্যাকএন্ড কল
+                // যদি mark-read.js ফাইলে সমস্যা থাকেও, আপনার মেসেজ লিস্ট দেখতে বাধা হবে না
+                fetch('/api/mark-read', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ gameId: user.gameId })
-                });
-                console.log("All messages marked as read via backend.");
+                }).then(res => console.log("Status updated"));
 
             } catch (err) {
-                console.error(err);
-                list.innerHTML = "<p style='text-align: center; color:red;'>মেসেজ লোড করতে সমস্যা হয়েছে।</p>";
+                list.innerHTML = "<p style='text-align: center; color:red;'>কানেকশন এরর!</p>";
             }
         }
 
-        // পেজ ওপেন হলেই ফাংশনটি চলবে
-        window.onload = initInbox;
+        window.onload = loadInbox;
     </script>
 </body>
 </html>
