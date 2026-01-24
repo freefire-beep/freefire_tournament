@@ -3,70 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inbox - Elite Nexus</title>
+    <title>Login - Elite Nexus</title>
     <link rel="stylesheet" href="style.css">
 </head>
-<body style="background-color: #0d1117; color: white; margin: 0; padding-bottom: 70px;">
+<body style="background-color: #0d1117; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0;">
 
-    <div style="padding: 20px; border-bottom: 1px solid #30363d;">
-        <h3 style="margin: 0; color: #58a6ff;">📧 Inbox Messages</h3>
-    </div>
+    <div style="background: #161b22; padding: 30px; border-radius: 15px; width: 320px; text-align: center; border: 1px solid #30363d; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
+        <h2 style="color: #58a6ff; margin-bottom: 5px;">ELITE NEXUS</h2>
+        <p style="font-size: 14px; color: gray; margin-bottom: 25px;">লগইন করে টুর্নামেন্টে যোগ দিন</p>
+        
+        <p id="login-error" style="color: #ff7b72; font-size: 13px; margin-bottom: 10px;"></p>
 
-    <div id="messageList" style="padding: 15px;">
-        <p id="loadingText" style="text-align: center; color: gray;">Loading messages...</p>
-    </div>
+        <input type="number" id="loginId" placeholder="Game UID (e.g. 1818398816)" style="width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #30363d; background: #0d1117; color: white; box-sizing: border-box; outline: none;">
+        
+        <input type="password" id="loginPin" placeholder="4-Digit PIN" style="width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #30363d; background: #0d1117; color: white; box-sizing: border-box; outline: none;">
+        
+        <button id="loginBtn" onclick="handleLogin()" style="width: 100%; padding: 12px; margin-top: 15px; border-radius: 8px; border: none; background: linear-gradient(90deg, #00d2ff, #3a7bd5); color: white; font-weight: bold; cursor: pointer; transition: 0.3s;">
+            LOGIN
+        </button>
 
-    <div style="position: fixed; bottom: 0; width: 100%; background: #161b22; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #30363d;">
-        <button onclick="location.href='inbox.html'" style="background:none; border:none; color:#58a6ff; cursor:pointer;">📧 Inbox</button>
-        <button onclick="location.href='home.html'" style="background:none; border:none; color:gray; cursor:pointer;">🏠 Home</button>
-        <button onclick="location.href='account.html'" style="background:none; border:none; color:gray; cursor:pointer;">👤 Account</button>
+        <p style="margin-top: 20px; font-size: 14px; color: gray;">
+            একাউন্ট নেই? <a href="register.html" style="color: #58a6ff; text-decoration: none; font-weight: bold;">রেজিস্ট্রেশন করুন</a>
+        </p>
     </div>
 
     <script>
-        // ইউজার সেশন চেক
-        const user = JSON.parse(sessionStorage.getItem('user'));
-        if(!user) location.href = 'index.html';
-
-        async function loadMessages() {
-            try {
-                // ব্রাউজারে সরাসরি এপিআই লিঙ্ক না রেখে সার্ভার সাইড এপিআই কল করা হচ্ছে
-                // আমরা 'get-packages' এন্ডপয়েন্টটি ব্যবহার করছি যা নোটিফিকেশনও হ্যান্ডেল করতে পারে
-                const response = await fetch(`/api/get-packages?gameId=${user.gameId}`);
-                
-                if (!response.ok) throw new Error("Failed to fetch");
-
-                const data = await response.json();
-                
-                // আপনার শীটে 'Notifications' ডেটা যদি সার্ভার থেকে আলাদাভাবে পাঠানো হয়
-                // এখানে 'get-packages' এর পরিবর্তে 'get-user-data' এন্ডপয়েন্ট থাকলে সেটিও ব্যবহার করা যায়
-                // আমি সিকুয়েন্স বজায় রাখতে আগের লজিকটিই রাখছি
-                const messages = data.notifications || []; 
-                
-                const list = document.getElementById('messageList');
-                list.innerHTML = "";
-
-                // যদি মেসেজ না থাকে
-                if (messages.length === 0) {
-                    list.innerHTML = "<p style='text-align: center; color:gray; margin-top: 20px;'>No messages found.</p>";
-                    return;
-                }
-
-                // নতুন মেসেজগুলো আগে দেখানোর জন্য Reverse করা
-                messages.reverse().forEach(msg => {
-                    list.innerHTML += `
-                        <div style="background:#161b22; padding:15px; border-radius:10px; margin-bottom:10px; border-left: 4px solid #58a6ff; border-top: 1px solid #30363d; border-right: 1px solid #30363d; border-bottom: 1px solid #30363d;">
-                            <div style="font-size:12px; color:gray; margin-bottom:5px;">${msg.Time}</div>
-                            <div style="font-size:14px; line-height: 1.4;">${msg.Message}</div>
-                        </div>
-                    `;
-                });
-            } catch (err) {
-                document.getElementById('loadingText').innerText = "Failed to load messages. Please refresh.";
-            }
+        // যদি ইউজার ইতিমধ্যে লগইন করা থাকে, তবে তাকে হোমে পাঠিয়ে দাও
+        if (sessionStorage.getItem('user')) {
+            window.location.href = 'home.html';
         }
 
-        // পেজ লোড হলে মেসেজগুলো দেখাও
-        loadMessages();
+        async function handleLogin() {
+            const gameId = document.getElementById('loginId').value.trim();
+            const pin = document.getElementById('loginPin').value.trim();
+            const errorMsg = document.getElementById('login-error');
+            const btn = document.getElementById('loginBtn');
+
+            if(!gameId || !pin) {
+                errorMsg.innerText = "গেম আইডি এবং পিন দিন!";
+                return;
+            }
+
+            // বাটন লোডিং স্টেট
+            btn.disabled = true;
+            btn.innerText = "Verifying...";
+            errorMsg.innerText = "";
+
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ gameId, pin })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // সেশন স্টোরেজে ইউজার ডাটা সেভ করা
+                    sessionStorage.setItem('user', JSON.stringify(data.user));
+                    window.location.href = 'home.html';
+                } else {
+                    errorMsg.innerText = data.message || "লগইন ব্যর্থ হয়েছে!";
+                    btn.disabled = false;
+                    btn.innerText = "LOGIN";
+                }
+            } catch (err) {
+                errorMsg.innerText = "সার্ভার সমস্যা! ইন্টারনেট কানেকশন চেক করুন।";
+                btn.disabled = false;
+                btn.innerText = "LOGIN";
+            }
+        }
     </script>
 </body>
 </html>
