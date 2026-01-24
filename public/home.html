@@ -21,78 +21,71 @@
 
     <div style="position: fixed; bottom: 0; width: 100%; background: #161b22; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #30363d;">
         <button onclick="location.href='inbox.html'" style="background:none; border:none; color:gray; cursor:pointer;">📧 Inbox</button>
-        <button onclick="location.href='home.html'" style="background:none; border:none; color:#58a6ff; cursor:pointer;">🏠 Home</button>
-        <button onclick="location.href='account.html'" style="background:none; border:none; color:gray; cursor:pointer;">👤 Account</button>
+        <button onclick="location.href='home.html'" style="background:none; border:none; color:#58a6ff; cursor:pointer; font-weight:bold;">🏠 Home</button>
+        <button onclick="location.href='account.html'" style="background:none; border:none; color:gray; cursor:pointer;">👤 Profile</button>
     </div>
 
     <script>
-        // ইউজার চেক
         const user = JSON.parse(sessionStorage.getItem('user'));
-        if(!user) location.href = 'index.html';
 
-        // ১. সার্ভার থেকে রিয়েল-টাইম প্যাকেজ, কয়েন এবং জয়েন স্ট্যাটাস নিয়ে আসা
+        // ১. চেক করা ইউজার লগইন আছে কি না
+        if (!user || !user.gameId) {
+            window.location.href = 'index.html';
+        }
+
         async function syncHomeData() {
             try {
-                // ব্রাউজারে কোনো API লিঙ্ক নেই, সরাসরি সার্ভার এন্ডপয়েন্ট কল
+                // ২. API থেকে প্যাকেজ এবং কয়েন ব্যালেন্স আনা (gameId পাঠিয়ে)
                 const response = await fetch(`/api/get-packages?gameId=${user.gameId}`);
-                if (!response.ok) throw new Error();
-                
                 const data = await response.json();
-                
-                // রিয়েল টাইম কয়েন আপডেট
-                document.getElementById('userCoins').innerText = data.coins;
-                user.coins = data.coins;
-                sessionStorage.setItem('user', JSON.stringify(user));
 
-                renderPackages(data.packages, data.joinedPackages);
-            } catch (err) {
-                document.getElementById('loadingText').innerText = "Network Error! Please Refresh.";
-            }
-        }
+                if (!response.ok) throw new Error("Data fetch failed");
 
-        // প্যাকেজগুলো ডিজাইন অনুযায়ী রেন্ডার করা
-        function renderPackages(packages, joinedList) {
-            const container = document.getElementById('packageContainer');
-            container.innerHTML = "";
-            
-            if(packages.length === 0) {
-                container.innerHTML = "<p style='text-align:center; color:gray;'>No matches available.</p>";
-                return;
-            }
+                // ৩. কয়েন ব্যালেন্স আপডেট
+                document.getElementById('userCoins').innerText = data.coins || 0;
 
-            packages.forEach(pkg => {
-                // ইউজার কি ইতিমধ্যে এই প্যাকেজে জয়েন করেছে?
-                const isJoined = joinedList.includes(pkg.Name);
+                const container = document.getElementById('packageContainer');
+                container.innerHTML = ""; // লোডিং টেক্সট সরানো
 
-                container.innerHTML += `
-                    <div style="background:#161b22; padding:20px; border-radius:15px; margin-bottom:15px; border:1px solid #30363d; display:flex; justify-content:space-between; align-items:center;">
-                        <div>
-                            <h4 style="margin:0;">${pkg.Name}</h4>
-                            <small style="color:#58a6ff; font-weight:bold;">Entry: ৳ ${pkg.Price}</small>
+                if (!data.packages || data.packages.length === 0) {
+                    container.innerHTML = "<p style='text-align:center; color:gray;'>No tournaments available.</p>";
+                    return;
+                }
+
+                // ৪. প্যাকেজগুলো রেন্ডার করা
+                data.packages.forEach(pkg => {
+                    const isJoined = data.joinedPackages.includes(pkg.Title);
+
+                    container.innerHTML += `
+                        <div style="background:#161b22; padding:15px; border-radius:12px; margin-bottom:15px; border: 1px solid #30363d;">
+                            <h3 style="margin:0; color:#e6edf3;">${pkg.Title}</h3>
+                            <div style="margin:10px 0; font-size:14px; color:gray;">
+                                Fee: ${pkg.Fee} 🪙 | Prize: ${pkg.Prize} 🏆
+                            </div>
+                            <button 
+                                onclick="joinTournament('${pkg.Title}', ${pkg.Fee})"
+                                ${isJoined ? 'disabled' : ''}
+                                style="width:100%; padding:10px; border-radius:8px; border:none; font-weight:bold; cursor:pointer; 
+                                background: ${isJoined ? '#30363d' : 'linear-gradient(90deg, #00d2ff, #3a7bd5)'}; color:white;">
+                                ${isJoined ? 'ALREADY JOINED' : 'JOIN NOW'}
+                            </button>
                         </div>
-                        <button class="join-btn" 
-                            id="btn-${pkg.Name.replace(/\s+/g, '')}"
-                            ${isJoined ? 'disabled' : ''} 
-                            onclick="buyPackage(this, '${pkg.Name}', ${pkg.Price})" 
-                            style="background:${isJoined ? '#30363d' : 'linear-gradient(to right, #00d2ff, #3a7bd5)'}; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:${isJoined ? 'not-allowed' : 'pointer'}; font-weight:bold;">
-                            ${isJoined ? 'Joined' : 'Join'}
-                        </button>
-                    </div>
-                `;
-            });
+                    `;
+                });
+
+            } catch (err) {
+                console.error(err);
+                document.getElementById('loadingText').innerText = "Failed to load matches. Check connection.";
+            }
         }
 
-        async function buyPackage(btn, title, fee) {
-            if(!confirm(`আপনি কি ৳ ${fee} দিয়ে ${title} ম্যাচে জয়েন করতে চান?`)) return;
+        async function joinTournament(title, fee) {
+            const allBtns = document.querySelectorAll('button');
+            
+            if (!confirm(`${title}-এ জয়েন করতে আপনার ${fee} কয়েন কাটা হবে। আপনি কি নিশ্চিত?`)) return;
 
-            // ২. লক সিস্টেম: সব জয়েন বাটন ৩ সেকেন্ডের জন্য ফ্রিজ করে দেওয়া
-            const allBtns = document.querySelectorAll('.join-btn');
-            allBtns.forEach(b => { 
-                b.disabled = true; 
-                b.style.opacity = "0.5"; 
-            });
-
-            btn.innerText = "Processing...";
+            // বাটনগুলো সাময়িকভাবে ডিসেবল করা
+            allBtns.forEach(b => b.disabled = true);
 
             try {
                 const response = await fetch('/api/purchase', {
@@ -108,30 +101,18 @@
 
                 const data = await response.json();
 
-                if(response.ok) {
-                    // ৩. রিয়েল টাইম কয়েন শো করা
+                if (response.ok) {
                     document.getElementById('userCoins').innerText = data.newBalance;
                     alert("সফলভাবে জয়েন হয়েছেন!");
-                    btn.innerText = "Joined";
-                    btn.style.background = "#30363d";
+                    syncHomeData(); // লিস্ট আপডেট করা
                 } else {
-                    // ৪. রিকোয়েস্ট ফেইল হলে এরর মেসেজ দেখানো
                     alert(data.message);
-                    syncHomeData(); // ডাটা পুনরায় সিঙ্ক করা
+                    syncHomeData();
                 }
             } catch (err) {
-                // ৫. নেটওয়ার্ক সমস্যা হলে বুঝতে পারা
-                alert("নেটওয়ার্ক সমস্যা! আপনার ইন্টারনেট কানেকশন চেক করুন।");
+                alert("নেটওয়ার্ক সমস্যা! আবার চেষ্টা করুন।");
             } finally {
-                // ৩ সেকেন্ড পর বাটনগুলো আনলক করা (যদি জয়েন না হয়ে থাকে)
-                setTimeout(() => {
-                    allBtns.forEach(b => {
-                        if (b.innerText !== "Joined") {
-                            b.disabled = false;
-                            b.style.opacity = "1";
-                        }
-                    });
-                }, 3000);
+                allBtns.forEach(b => b.disabled = false);
             }
         }
 
@@ -139,5 +120,4 @@
         syncHomeData();
     </script>
 </body>
-    </html>
-    
+</html>
