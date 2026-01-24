@@ -2,7 +2,7 @@ export default async function handler(req, res) {
     if (req.method !== 'POST') return res.status(405).send();
 
     const { name, gameId, pin } = req.body;
-    const SHEETDB_URL = "https://sheetdb.io/api/v1/3dn8ej3m7h685";
+    const SHEETDB_URL = "https://sheetdb.io/api/v1/d6fk2z82ifpco";
 
     try {
         // ১. চেক করা: এই Game ID দিয়ে আগে থেকেই একাউন্ট আছে কি না
