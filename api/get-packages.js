@@ -3,7 +3,7 @@ export default async function handler(req, res) {
     if (req.method !== 'GET') return res.status(405).send();
 
     const { gameId } = req.query;
-    const SHEET_URL = "https://sheetdb.io/api/v1/3dn8ej3m7h685";
+    const SHEET_URL = "https://sheetdb.io/api/v1/d6fk2z82ifpco";
 
     if (!gameId) {
         return res.status(400).json({ error: "Game ID missing" });
