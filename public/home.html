@@ -4,77 +4,38 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Elite Nexus - Home</title>
-    <style>
-        body { background-color: #0d1117; color: white; font-family: sans-serif; margin: 0; padding-bottom: 80px; }
-        .header { padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #30363d; background: #161b22; position: sticky; top: 0; z-index: 1000; }
-        .coin-box { background: #161b22; padding: 5px 12px; border-radius: 20px; border: 1px solid #58a6ff; font-weight: bold; color: #58a6ff; }
-        
-        .package-card { background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 15px; margin: 15px; }
-        .pkg-title { font-size: 18px; font-weight: bold; margin-bottom: 5px; }
-        .pkg-fee { color: #8b949e; font-size: 14px; margin-bottom: 15px; }
-        .join-btn { width: 100%; padding: 10px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; }
-        .btn-active { background: #238636; color: white; }
-        .btn-joined { background: #30363d; color: #8b949e; cursor: not-allowed; }
-
-        /* Navigation Style */
-        .nav-bar { position: fixed; bottom: 0; width: 100%; background: #161b22; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #30363d; }
-        .nav-btn { background: none; border: none; color: #8b949e; cursor: pointer; font-size: 13px; display: flex; flex-direction: column; align-items: center; position: relative; text-decoration: none; }
-        .nav-btn.active { color: #58a6ff; }
-        .nav-icon { font-size: 20px; margin-bottom: 4px; }
-
-        /* Notification Badge Style */
-        #msgBadge {
-            position: absolute;
-            top: -5px;
-            right: 2px;
-            background: #ff7b72; /* লাল রঙ */
-            color: white;
-            font-size: 10px;
-            padding: 2px 6px;
-            border-radius: 10px;
-            font-weight: bold;
-            display: none; /* শুরুতে লুকানো থাকবে */
-            box-shadow: 0 0 5px rgba(255,0,0,0.5);
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body style="background-color: #0d1117; color: white; margin: 0; padding-bottom: 70px;">
 
-    <div class="header">
+    <div style="padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #30363d;">
         <h3 style="color: #58a6ff; margin: 0;">ELITE NEXUS</h3>
-        <div class="coin-box">
-            <span id="userCoins">0</span> 🪙
+        <div style="background: #161b22; padding: 5px 12px; border-radius: 20px; border: 1px solid #58a6ff;">
+            <span id="userCoins">Loading...</span> 🪙
         </div>
     </div>
 
-    <div id="packageContainer">
-        <p id="loadingText" style="text-align: center; color: gray; margin-top: 50px;">Loading Matches...</p>
+    <div id="packageContainer" style="padding: 15px;">
+        <p id="loadingText" style="text-align: center; color: gray;">Loading Matches...</p>
     </div>
 
-    <div class="nav-bar">
-        <button class="nav-btn active" onclick="location.reload()">
-            <span class="nav-icon">🏠</span>
-            <span>Home</span>
+    <div style="position: fixed; bottom: 0; width: 100%; background: #161b22; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #30363d;">
+        
+        <button onclick="location.href='inbox.html'" style="background:none; border:none; color:gray; cursor:pointer; position: relative;">
+            <span id="msgBadge" style="display: none; position: absolute; top: -10px; right: -10px; background: red; color: white; font-size: 10px; padding: 2px 6px; border-radius: 50%; font-weight: bold; border: 1px solid white;">0</span>
+            📧 Inbox
         </button>
 
-        <button class="nav-btn" onclick="location.href='inbox.html'">
-            <span id="msgBadge">0</span>
-            <span class="nav-icon">📧</span>
-            <span>Inbox</span>
-        </button>
-
-        <button class="nav-btn" onclick="location.href='account.html'">
-            <span class="nav-icon">👤</span>
-            <span>Profile</span>
-        </button>
+        <button onclick="location.reload()" style="background:none; border:none; color:#58a6ff; cursor:pointer; font-weight:bold;">🏠 Home</button>
+        
+        <button onclick="location.href='account.html'" style="background:none; border:none; color:gray; cursor:pointer;">👤 Profile</button>
     </div>
 
     <script>
-        // ইউজার লগইন চেক
         const user = JSON.parse(sessionStorage.getItem('user'));
         if (!user) { location.href = 'index.html'; }
 
-        // ১. প্যাকেজ এবং কয়েন আপডেট করার ফাংশন
+        // ১. ডাটা সিঙ্ক (Original logic from your file)
         async function syncHomeData() {
             try {
                 const response = await fetch(`/api/get-packages?gameId=${user.gameId}`);
@@ -85,26 +46,25 @@
                     renderPackages(data.packages, data.joinedPackages);
                 }
             } catch (err) {
-                document.getElementById('loadingText').innerText = "Network Error!";
+                document.getElementById('loadingText').innerText = "Failed to load matches.";
             }
         }
 
-        // ২. ইনবক্সের নতুন মেসেজ গণনা করার ফাংশন (Badge Update)
+        // ২. মেসেজ ব্যাজ আপডেট (New secure logic without exposing URL)
         async function updateInboxBadge() {
             try {
                 const response = await fetch(`/api/get-messages?gameId=${user.gameId}`);
                 if (!response.ok) return;
 
                 const messages = await response.json();
-                // 'Unseen' স্ট্যাটাসওয়ালা মেসেজ ফিল্টার করা
-                const newMessages = messages.filter(msg => msg.Is_Read === "Unseen");
+                const unseenCount = messages.filter(msg => msg.Is_Read === "Unseen").length;
                 
                 const badge = document.getElementById('msgBadge');
-                if (newMessages.length > 0) {
-                    badge.innerText = newMessages.length;
-                    badge.style.display = 'block'; // সংখ্যা থাকলে লাল রঙে দেখাবে
+                if (unseenCount > 0) {
+                    badge.innerText = unseenCount;
+                    badge.style.display = 'block';
                 } else {
-                    badge.style.display = 'none'; // না থাকলে লুকানো থাকবে
+                    badge.style.display = 'none';
                 }
             } catch (err) {
                 console.log("Badge error:", err);
@@ -118,10 +78,10 @@
             packages.forEach(pkg => {
                 const isJoined = joined.includes(pkg.Title);
                 container.innerHTML += `
-                    <div class="package-card">
-                        <div class="pkg-title">${pkg.Title}</div>
-                        <div class="pkg-fee">Entry Fee: ${pkg.Fee} Coins</div>
-                        <button class="join-btn ${isJoined ? 'btn-joined' : 'btn-active'}" 
+                    <div style="background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 15px; margin-bottom: 15px;">
+                        <div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">${pkg.Title}</div>
+                        <div style="color: #8b949e; font-size: 14px; margin-bottom: 15px;">Entry Fee: ${pkg.Fee} Coins</div>
+                        <button style="width: 100%; padding: 10px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; ${isJoined ? 'background: #30363d; color: #8b949e;' : 'background: #238636; color: white;'}" 
                                 onclick="${isJoined ? '' : `joinTournament('${pkg.Title}', ${pkg.Fee})`}"
                                 ${isJoined ? 'disabled' : ''}>
                             ${isJoined ? 'ALREADY JOINED' : 'JOIN NOW'}
@@ -150,7 +110,7 @@
                 if (response.ok) {
                     alert("সফলভাবে জয়েন হয়েছেন!");
                     syncHomeData();
-                    updateInboxBadge(); // পারচেজ হলে অভিনন্দন মেসেজ আসে, তাই ব্যাজ আপডেট
+                    updateInboxBadge();
                 } else {
                     alert(data.message);
                 }
@@ -162,9 +122,6 @@
         // শুরুতে রান হবে
         syncHomeData();
         updateInboxBadge();
-
-        // প্রতি ৩০ সেকেন্ড পরপর মেসেজ চেক করবে অটোমেটিক (Optional)
-        setInterval(updateInboxBadge, 30000);
     </script>
 </body>
 </html>
