@@ -13,49 +13,71 @@
     </div>
 
     <div id="messageList" style="padding: 15px;">
-        <p id="loadingText">Loading messages...</p>
+        <p id="loadingText" style="text-align: center; color: gray;">Loading messages...</p>
     </div>
 
     <div style="position: fixed; bottom: 0; width: 100%; background: #161b22; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #30363d;">
-        <button onclick="location.href='inbox.html'" style="background:none; border:none; color:#58a6ff; cursor:pointer;">📧 Inbox</button>
+        <button onclick="location.href='inbox.html'" style="background:none; border:none; color:#58a6ff; cursor:pointer; font-weight:bold;">📧 Inbox</button>
         <button onclick="location.href='home.html'" style="background:none; border:none; color:gray; cursor:pointer;">🏠 Home</button>
         <button onclick="location.href='account.html'" style="background:none; border:none; color:gray; cursor:pointer;">👤 Account</button>
     </div>
 
     <script>
+        // সেশন থেকে ইউজার চেক
         const user = JSON.parse(sessionStorage.getItem('user'));
         if(!user) location.href = 'index.html';
 
         async function loadMessages() {
-            const SHEETDB_URL = "https://sheetdb.io/api/v1/3dn8ej3m7h685";
             try {
-                // নিরাপত্তা: শুধুমাত্র এই ইউজারের Game_ID এর মেসেজগুলো আনবে
-                const response = await fetch(`${SHEETDB_URL}/search?sheet=Notifications&Game_ID=${user.gameId}`);
-                const messages = await response.json();
+                // ১. কানেকশন সিকুয়েন্স: আপনার নতুন এপিআই কল করা হচ্ছে
+                const response = await fetch(`/api/get-packages?gameId=${user.gameId}`);
+                
+                if (!response.ok) throw new Error("Connection Failed");
+
+                const data = await response.json();
+                
+                // ২. ডাটা স্ট্রাকচার চেক (আপনার get-packages এপিআই থেকে আসা notifications)
+                const messages = data.notifications || []; 
                 
                 const list = document.getElementById('messageList');
                 list.innerHTML = "";
 
-                if(messages.length === 0) {
-                    list.innerHTML = "<p style='color:gray;'>No messages found.</p>";
+                // ৩. যদি কোনো মেসেজ না থাকে
+                if (messages.length === 0) {
+                    list.innerHTML = `
+                        <div style="text-align: center; margin-top: 50px;">
+                            <div style="font-size: 40px; margin-bottom: 10px;">📭</div>
+                            <p style="color: gray;">No messages yet.</p>
+                        </div>
+                    `;
                     return;
                 }
 
-                // নতুন মেসেজগুলো আগে দেখাবে (Reverse)
+                // ৪. রেন্ডারিং: নতুন মেসেজ সবার আগে (Reverse)
                 messages.reverse().forEach(msg => {
                     list.innerHTML += `
-                        <div style="background:#161b22; padding:15px; border-radius:10px; margin-bottom:10px; border-left: 4px solid #58a6ff;">
-                            <div style="font-size:12px; color:gray; margin-bottom:5px;">${msg.Time}</div>
-                            <div style="font-size:14px;">${msg.Message}</div>
+                        <div style="background:#161b22; padding:15px; border-radius:10px; margin-bottom:12px; border-left: 4px solid #58a6ff; border: 1px solid #30363d; border-left: 4px solid #58a6ff; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <span style="font-size:11px; color:#58a6ff; font-weight: bold;">SYSTEM</span>
+                                <span style="font-size:10px; color:gray;">${msg.Time}</span>
+                            </div>
+                            <div style="font-size:14px; line-height: 1.5; color: #e6edf3;">${msg.Message}</div>
                         </div>
                     `;
                 });
             } catch (err) {
-                document.getElementById('loadingText').innerText = "Failed to load messages.";
+                // ৫. এরর হ্যান্ডলিং: নেটওয়ার্ক বা কানেকশন এরর হলে ইউজারকে জানানো
+                document.getElementById('loadingText').innerHTML = `
+                    <div style="text-align: center; color: #ff7b72;">
+                        Failed to load messages.<br>
+                        <button onclick="location.reload()" style="background: #30363d; border: none; color: white; padding: 5px 15px; border-radius: 5px; margin-top: 10px; cursor: pointer;">Retry</button>
+                    </div>
+                `;
             }
         }
+
+        // পেজ লোড হওয়ার সাথে সাথে কানেকশন শুরু
         loadMessages();
     </script>
 </body>
-          </html>
-          
+</html>
