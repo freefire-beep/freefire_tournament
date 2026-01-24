@@ -11,7 +11,7 @@
     <div style="padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #30363d;">
         <h3 style="color: #58a6ff; margin: 0;">ELITE NEXUS</h3>
         <div style="background: #161b22; padding: 5px 12px; border-radius: 20px; border: 1px solid #58a6ff;">
-            <span id="userCoins">Loading...</span> 🪙
+            <span id="userCoins">...</span> 🪙
         </div>
     </div>
 
@@ -19,38 +19,40 @@
         <p id="loadingText" style="text-align: center; color: gray;">Loading Matches...</p>
     </div>
 
-    <div style="position: fixed; bottom: 0; width: 100%; background: #161b22; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #30363d;">
+    <div style="position: fixed; bottom: 0; width: 100%; background: #161b22; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #30363d; z-index: 1000;">
         
-        <button onclick="location.href='inbox.html'" style="background:none; border:none; color:gray; cursor:pointer; position: relative;">
-            <span id="msgBadge" style="display: none; position: absolute; top: -10px; right: -10px; background: red; color: white; font-size: 10px; padding: 2px 6px; border-radius: 50%; font-weight: bold; border: 1px solid white;">0</span>
+        <button onclick="location.href='inbox.html'" style="background:none; border:none; color:gray; cursor:pointer; position: relative; font-family: inherit; font-size: 16px;">
+            <span id="msgBadge" style="display: none; position: absolute; top: -12px; right: -15px; background: #ff7b72; color: white; font-size: 11px; padding: 2px 7px; border-radius: 50%; font-weight: bold; border: 2px solid #161b22;">0</span>
             📧 Inbox
         </button>
 
-        <button onclick="location.reload()" style="background:none; border:none; color:#58a6ff; cursor:pointer; font-weight:bold;">🏠 Home</button>
+        <button onclick="location.reload()" style="background:none; border:none; color:#58a6ff; cursor:pointer; font-weight:bold; font-size: 16px;">🏠 Home</button>
         
-        <button onclick="location.href='account.html'" style="background:none; border:none; color:gray; cursor:pointer;">👤 Profile</button>
+        <button onclick="location.href='account.html'" style="background:none; border:none; color:gray; cursor:pointer; font-size: 16px;">👤 Profile</button>
     </div>
 
     <script>
-        const user = JSON.parse(sessionStorage.getItem('user'));
-        if (!user) { location.href = 'index.html'; }
+        // সেশন চেক
+        const userData = sessionStorage.getItem('user');
+        if (!userData) { window.location.href = 'index.html'; }
+        const user = JSON.parse(userData);
 
-        // ১. ডাটা সিঙ্ক (Original logic from your file)
+        // ১. প্যাকেজ এবং কয়েন সিঙ্ক
         async function syncHomeData() {
             try {
                 const response = await fetch(`/api/get-packages?gameId=${user.gameId}`);
+                if (!response.ok) throw new Error("Connection Failed");
                 const data = await response.json();
 
-                if (response.ok) {
-                    document.getElementById('userCoins').innerText = data.coins;
-                    renderPackages(data.packages, data.joinedPackages);
-                }
+                document.getElementById('userCoins').innerText = data.coins;
+                renderPackages(data.packages, data.joinedPackages);
             } catch (err) {
-                document.getElementById('loadingText').innerText = "Failed to load matches.";
+                console.error(err);
+                document.getElementById('loadingText').innerText = "Connection Error! Please refresh.";
             }
         }
 
-        // ২. মেসেজ ব্যাজ আপডেট (New secure logic without exposing URL)
+        // ২. নোটিফিকেশন ব্যাজ আপডেট
         async function updateInboxBadge() {
             try {
                 const response = await fetch(`/api/get-messages?gameId=${user.gameId}`);
@@ -67,7 +69,7 @@
                     badge.style.display = 'none';
                 }
             } catch (err) {
-                console.log("Badge error:", err);
+                console.log("Badge fetch error");
             }
         }
 
@@ -75,13 +77,18 @@
             const container = document.getElementById('packageContainer');
             container.innerHTML = "";
 
+            if (!packages || packages.length === 0) {
+                container.innerHTML = "<p style='text-align:center; color:gray;'>No matches found.</p>";
+                return;
+            }
+
             packages.forEach(pkg => {
                 const isJoined = joined.includes(pkg.Title);
                 container.innerHTML += `
                     <div style="background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 15px; margin-bottom: 15px;">
                         <div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">${pkg.Title}</div>
                         <div style="color: #8b949e; font-size: 14px; margin-bottom: 15px;">Entry Fee: ${pkg.Fee} Coins</div>
-                        <button style="width: 100%; padding: 10px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; ${isJoined ? 'background: #30363d; color: #8b949e;' : 'background: #238636; color: white;'}" 
+                        <button style="width: 100%; padding: 12px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; ${isJoined ? 'background: #30363d; color: #8b949e;' : 'background: #238636; color: white;'}" 
                                 onclick="${isJoined ? '' : `joinTournament('${pkg.Title}', ${pkg.Fee})`}"
                                 ${isJoined ? 'disabled' : ''}>
                             ${isJoined ? 'ALREADY JOINED' : 'JOIN NOW'}
@@ -92,7 +99,7 @@
         }
 
         async function joinTournament(title, fee) {
-            if (!confirm(`${title}-এ জয়েন করতে আপনার ${fee} কয়েন কাটা হবে। আপনি কি নিশ্চিত?`)) return;
+            if (!confirm(`${title}-এ জয়েন করতে আপনার ${fee} কয়েন কাটা হবে।`)) return;
 
             try {
                 const response = await fetch('/api/purchase', {
@@ -106,22 +113,24 @@
                     })
                 });
 
-                const data = await response.json();
                 if (response.ok) {
                     alert("সফলভাবে জয়েন হয়েছেন!");
                     syncHomeData();
                     updateInboxBadge();
                 } else {
+                    const data = await response.json();
                     alert(data.message);
                 }
             } catch (err) {
-                alert("ট্রানজেকশন ব্যর্থ হয়েছে!");
+                alert("ট্রানজেকশন সফল হয়নি!");
             }
         }
 
-        // শুরুতে রান হবে
-        syncHomeData();
-        updateInboxBadge();
+        // শুরুতে লোড হবে
+        window.onload = () => {
+            syncHomeData();
+            updateInboxBadge();
+        };
     </script>
 </body>
 </html>
