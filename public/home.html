@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elite Nexus - Home</title>
+    <style>
+        body { background-color: #0d1117; color: white; font-family: sans-serif; margin: 0; padding-bottom: 80px; }
+        .header { padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #30363d; background: #161b22; position: sticky; top: 0; z-index: 1000; }
+        .coin-box { background: #161b22; padding: 5px 12px; border-radius: 20px; border: 1px solid #58a6ff; font-weight: bold; color: #58a6ff; }
+        
+        .package-card { background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 15px; margin: 15px; }
+        .pkg-title { font-size: 18px; font-weight: bold; margin-bottom: 5px; }
+        .pkg-fee { color: #8b949e; font-size: 14px; margin-bottom: 15px; }
+        .join-btn { width: 100%; padding: 10px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; }
+        .btn-active { background: #238636; color: white; }
+        .btn-joined { background: #30363d; color: #8b949e; cursor: not-allowed; }
+
+        /* Navigation Style */
+        .nav-bar { position: fixed; bottom: 0; width: 100%; background: #161b22; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #30363d; }
+        .nav-btn { background: none; border: none; color: #8b949e; cursor: pointer; font-size: 13px; display: flex; flex-direction: column; align-items: center; position: relative; text-decoration: none; }
+        .nav-btn.active { color: #58a6ff; }
+        .nav-icon { font-size: 20px; margin-bottom: 4px; }
+
+        /* Notification Badge Style */
+        #msgBadge {
+            position: absolute;
+            top: -5px;
+            right: 2px;
+            background: #ff7b72; /* লাল রঙ */
+            color: white;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-weight: bold;
+            display: none; /* শুরুতে লুকানো থাকবে */
+            box-shadow: 0 0 5px rgba(255,0,0,0.5);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h3 style="color: #58a6ff; margin: 0;">ELITE NEXUS</h3>
+        <div class="coin-box">
+            <span id="userCoins">0</span> 🪙
+        </div>
+    </div>
+
+    <div id="packageContainer">
+        <p id="loadingText" style="text-align: center; color: gray; margin-top: 50px;">Loading Matches...</p>
+    </div>
+
+    <div class="nav-bar">
+        <button class="nav-btn active" onclick="location.reload()">
+            <span class="nav-icon">🏠</span>
+            <span>Home</span>
+        </button>
+
+        <button class="nav-btn" onclick="location.href='inbox.html'">
+            <span id="msgBadge">0</span>
+            <span class="nav-icon">📧</span>
+            <span>Inbox</span>
+        </button>
+
+        <button class="nav-btn" onclick="location.href='account.html'">
+            <span class="nav-icon">👤</span>
+            <span>Profile</span>
+        </button>
+    </div>
+
+    <script>
+        // ইউজার লগইন চেক
+        const user = JSON.parse(sessionStorage.getItem('user'));
+        if (!user) { location.href = 'index.html'; }
+
+        // ১. প্যাকেজ এবং কয়েন আপডেট করার ফাংশন
+        async function syncHomeData() {
+            try {
+                const response = await fetch(`/api/get-packages?gameId=${user.gameId}`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    document.getElementById('userCoins').innerText = data.coins;
+                    renderPackages(data.packages, data.joinedPackages);
+                }
+            } catch (err) {
+                document.getElementById('loadingText').innerText = "Network Error!";
+            }
+        }
+
+        // ২. ইনবক্সের নতুন মেসেজ গণনা করার ফাংশন (Badge Update)
+        async function updateInboxBadge() {
+            try {
+                const response = await fetch(`/api/get-messages?gameId=${user.gameId}`);
+                if (!response.ok) return;
+
+                const messages = await response.json();
+                // 'Unseen' স্ট্যাটাসওয়ালা মেসেজ ফিল্টার করা
+                const newMessages = messages.filter(msg => msg.Is_Read === "Unseen");
+                
+                const badge = document.getElementById('msgBadge');
+                if (newMessages.length > 0) {
+                    badge.innerText = newMessages.length;
+                    badge.style.display = 'block'; // সংখ্যা থাকলে লাল রঙে দেখাবে
+                } else {
+                    badge.style.display = 'none'; // না থাকলে লুকানো থাকবে
+                }
+            } catch (err) {
+                console.log("Badge error:", err);
+            }
+        }
+
+        function renderPackages(packages, joined) {
+            const container = document.getElementById('packageContainer');
+            container.innerHTML = "";
+
+            packages.forEach(pkg => {
+                const isJoined = joined.includes(pkg.Title);
+                container.innerHTML += `
+                    <div class="package-card">
+                        <div class="pkg-title">${pkg.Title}</div>
+                        <div class="pkg-fee">Entry Fee: ${pkg.Fee} Coins</div>
+                        <button class="join-btn ${isJoined ? 'btn-joined' : 'btn-active'}" 
+                                onclick="${isJoined ? '' : `joinTournament('${pkg.Title}', ${pkg.Fee})`}"
+                                ${isJoined ? 'disabled' : ''}>
+                            ${isJoined ? 'ALREADY JOINED' : 'JOIN NOW'}
+                        </button>
+                    </div>
+                `;
+            });
+        }
+
+        async function joinTournament(title, fee) {
+            if (!confirm(`${title}-এ জয়েন করতে আপনার ${fee} কয়েন কাটা হবে। আপনি কি নিশ্চিত?`)) return;
+
+            try {
+                const response = await fetch('/api/purchase', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        gameId: user.gameId, 
+                        fee: fee, 
+                        packageName: title, 
+                        userName: user.name 
+                    })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    alert("সফলভাবে জয়েন হয়েছেন!");
+                    syncHomeData();
+                    updateInboxBadge(); // পারচেজ হলে অভিনন্দন মেসেজ আসে, তাই ব্যাজ আপডেট
+                } else {
+                    alert(data.message);
+                }
+            } catch (err) {
+                alert("ট্রানজেকশন ব্যর্থ হয়েছে!");
+            }
+        }
+
+        // শুরুতে রান হবে
+        syncHomeData();
+        updateInboxBadge();
+
+        // প্রতি ৩০ সেকেন্ড পরপর মেসেজ চেক করবে অটোমেটিক (Optional)
+        setInterval(updateInboxBadge, 30000);
+    </script>
+</body>
+</html>
