@@ -14,7 +14,7 @@
         }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .nav-bar { position: fixed; bottom: 0; width: 100%; background: #161b22; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #30363d; }
-        .nav-btn { background: none; border: none; color: gray; cursor: pointer; font-size: 14px; display: flex; flex-direction: column; align-items: center; }
+        .nav-btn { background: none; border: none; color: gray; cursor: pointer; font-size: 14px; display: flex; flex-direction: column; align-items: center; text-decoration: none; }
         .nav-btn.active { color: #58a6ff; font-weight: bold; }
         .time { font-size: 10px; color: gray; }
         .system-tag { font-size: 11px; color: #58a6ff; font-weight: bold; }
@@ -38,17 +38,15 @@
     </div>
 
     <script>
-        // সেশন থেকে ইউজার চেক করা
+        // সেশন চেক
         const user = JSON.parse(sessionStorage.getItem('user'));
         if (!user) { location.href = 'index.html'; }
 
-        const SHEETDB_URL = "https://sheetdb.io/api/v1/3dn8ej3m7h685"; // আপনার API URL
-
-        async function loadAndMarkAsRead() {
+        async function initInbox() {
             const list = document.getElementById('messageList');
             
             try {
-                // ১. মেসেজ ফেচ করা (আপনার এপিআই ব্যবহার করে)
+                // ১. মেসেজ লোড করা (get-messages.js এপিআই এর মাধ্যমে)
                 const response = await fetch(`/api/get-messages?gameId=${user.gameId}`);
                 if (!response.ok) throw new Error("Fetch failed");
                 
@@ -60,7 +58,6 @@
                     return;
                 }
 
-                // মেসেজগুলো উল্টো করে সাজানো (নতুনগুলো আগে)
                 messages.reverse().forEach(msg => {
                     list.innerHTML += `
                         <div class="message-card">
@@ -73,13 +70,14 @@
                     `;
                 });
 
-                // ২. সব মেসেজ 'Seen' করে দেওয়া (অটোমেটিক আপডেট)
-                // এটি SheetDB-তে সরাসরি কাজ করবে যদি Game_ID মিলে যায়
-                fetch(`${SHEETDB_URL}/all?sheet=Notifications&Game_ID=${user.gameId}`, {
-                    method: 'PATCH',
+                // ২. মেসেজগুলো 'Seen' মার্ক করা (নতুন mark-read.js এপিআই এর মাধ্যমে)
+                // এটি ব্যাকএন্ডে কাজ করবে, তাই URL এখানে দেখা যাবে না
+                await fetch('/api/mark-read', {
+                    method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ "Is_Read": "Seen" })
-                }).then(res => console.log("Notifications marked as seen"));
+                    body: JSON.stringify({ gameId: user.gameId })
+                });
+                console.log("All messages marked as read via backend.");
 
             } catch (err) {
                 console.error(err);
@@ -87,8 +85,8 @@
             }
         }
 
-        // পেজ লোড হলে ফাংশনটি চলবে
-        window.onload = loadAndMarkAsRead;
+        // পেজ ওপেন হলেই ফাংশনটি চলবে
+        window.onload = initInbox;
     </script>
 </body>
 </html>
