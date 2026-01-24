@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elite Nexus - Home</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body style="background-color: #0d1117; color: white; margin: 0; padding-bottom: 70px;">
+
+    <div style="padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #30363d;">
+        <h3 style="color: #58a6ff; margin: 0;">ELITE NEXUS</h3>
+        <div style="background: #161b22; padding: 5px 12px; border-radius: 20px; border: 1px solid #58a6ff;">
+            <span id="userCoins">Loading...</span> 🪙
+        </div>
+    </div>
+
+    <div id="packageContainer" style="padding: 15px;">
+        <p id="loadingText" style="text-align: center; color: gray;">Loading Matches...</p>
+    </div>
+
+    <div style="position: fixed; bottom: 0; width: 100%; background: #161b22; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #30363d;">
+        <button onclick="location.href='inbox.html'" style="background:none; border:none; color:gray; cursor:pointer;">📧 Inbox</button>
+        <button onclick="location.href='home.html'" style="background:none; border:none; color:#58a6ff; cursor:pointer; font-weight:bold;">🏠 Home</button>
+        <button onclick="location.href='account.html'" style="background:none; border:none; color:gray; cursor:pointer;">👤 Profile</button>
+    </div>
+
+    <script>
+        const user = JSON.parse(sessionStorage.getItem('user'));
+
+        // ১. চেক করা ইউজার লগইন আছে কি না
+        if (!user || !user.gameId) {
+            window.location.href = 'index.html';
+        }
+
+        async function syncHomeData() {
+            try {
+                // ২. API থেকে প্যাকেজ এবং কয়েন ব্যালেন্স আনা (gameId পাঠিয়ে)
+                const response = await fetch(`/api/get-packages?gameId=${user.gameId}`);
+                const data = await response.json();
+
+                if (!response.ok) throw new Error("Data fetch failed");
+
+                // ৩. কয়েন ব্যালেন্স আপডেট
+                document.getElementById('userCoins').innerText = data.coins || 0;
+
+                const container = document.getElementById('packageContainer');
+                container.innerHTML = ""; // লোডিং টেক্সট সরানো
+
+                if (!data.packages || data.packages.length === 0) {
+                    container.innerHTML = "<p style='text-align:center; color:gray;'>No tournaments available.</p>";
+                    return;
+                }
+
+                // ৪. প্যাকেজগুলো রেন্ডার করা
+                data.packages.forEach(pkg => {
+                    const isJoined = data.joinedPackages.includes(pkg.Title);
+
+                    container.innerHTML += `
+                        <div style="background:#161b22; padding:15px; border-radius:12px; margin-bottom:15px; border: 1px solid #30363d;">
+                            <h3 style="margin:0; color:#e6edf3;">${pkg.Title}</h3>
+                            <div style="margin:10px 0; font-size:14px; color:gray;">
+                                Fee: ${pkg.Fee} 🪙 | Prize: ${pkg.Prize} 🏆
+                            </div>
+                            <button 
+                                onclick="joinTournament('${pkg.Title}', ${pkg.Fee})"
+                                ${isJoined ? 'disabled' : ''}
+                                style="width:100%; padding:10px; border-radius:8px; border:none; font-weight:bold; cursor:pointer; 
+                                background: ${isJoined ? '#30363d' : 'linear-gradient(90deg, #00d2ff, #3a7bd5)'}; color:white;">
+                                ${isJoined ? 'ALREADY JOINED' : 'JOIN NOW'}
+                            </button>
+                        </div>
+                    `;
+                });
+
+            } catch (err) {
+                console.error(err);
+                document.getElementById('loadingText').innerText = "Failed to load matches. Check connection.";
+            }
+        }
+
+        async function joinTournament(title, fee) {
+            const allBtns = document.querySelectorAll('button');
+            
+            if (!confirm(`${title}-এ জয়েন করতে আপনার ${fee} কয়েন কাটা হবে। আপনি কি নিশ্চিত?`)) return;
+
+            // বাটনগুলো সাময়িকভাবে ডিসেবল করা
+            allBtns.forEach(b => b.disabled = true);
+
+            try {
+                const response = await fetch('/api/purchase', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        gameId: user.gameId, 
+                        fee: fee, 
+                        packageName: title, 
+                        userName: user.name 
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    document.getElementById('userCoins').innerText = data.newBalance;
+                    alert("সফলভাবে জয়েন হয়েছেন!");
+                    syncHomeData(); // লিস্ট আপডেট করা
+                } else {
+                    alert(data.message);
+                    syncHomeData();
+                }
+            } catch (err) {
+                alert("নেটওয়ার্ক সমস্যা! আবার চেষ্টা করুন।");
+            } finally {
+                allBtns.forEach(b => b.disabled = false);
+            }
+        }
+
+        // শুরুতে ডাটা লোড করা
+        syncHomeData();
+    </script>
+</body>
+</html>
