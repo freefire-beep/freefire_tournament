@@ -3,64 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Elite Nexus</title>
-    <style>
-        body { background-color: #0d1117; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .login-card { background: #161b22; padding: 30px; border-radius: 15px; width: 300px; text-align: center; border: 1px solid #30363d; }
-        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 5px; border: 1px solid #30363d; background: #0d1117; color: white; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; background: linear-gradient(to right, #00d2ff, #3a7bd5); border: none; border-radius: 5px; color: white; cursor: pointer; font-weight: bold; }
-        #error-msg { color: #ff7b72; font-size: 13px; margin-top: 10px; }
-    </style>
+    <title>Inbox - Elite Nexus</title>
+    <link rel="stylesheet" href="style.css">
 </head>
-<body>
-    <div class="login-card">
-        <h2 style="color: #58a6ff;">ELITE NEXUS</h2>
-        <p style="color: gray; font-size: 14px;">Login with Game UID</p>
-        <input type="number" id="gameId" placeholder="Game UID (1818398816)">
-        <input type="password" id="pin" placeholder="PIN Number (123)">
-        <button id="loginBtn" onclick="handleLogin()">LOGIN</button>
-        <p id="error-msg"></p>
-        <p style="font-size: 12px; margin-top: 15px;">New player? <a href="register.html" style="color: #58a6ff; text-decoration: none;">Create Account</a></p>
+<body style="background-color: #0d1117; color: white; margin: 0; padding-bottom: 70px;">
+
+    <div style="padding: 20px; border-bottom: 1px solid #30363d;">
+        <h3 style="margin: 0; color: #58a6ff;">📧 Inbox Messages</h3>
+    </div>
+
+    <div id="messageList" style="padding: 15px;">
+        <p id="loadingText" style="text-align: center; color: gray;">Loading messages...</p>
+    </div>
+
+    <div style="position: fixed; bottom: 0; width: 100%; background: #161b22; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #30363d;">
+        <button onclick="location.href='inbox.html'" style="background:none; border:none; color:#58a6ff; cursor:pointer;">📧 Inbox</button>
+        <button onclick="location.href='home.html'" style="background:none; border:none; color:gray; cursor:pointer;">🏠 Home</button>
+        <button onclick="location.href='account.html'" style="background:none; border:none; color:gray; cursor:pointer;">👤 Account</button>
     </div>
 
     <script>
-        async function handleLogin() {
-            const gameId = document.getElementById('gameId').value;
-            const pin = document.getElementById('pin').value;
-            const errorMsg = document.getElementById('error-msg');
-            const btn = document.getElementById('loginBtn');
+        // ইউজার সেশন চেক
+        const user = JSON.parse(sessionStorage.getItem('user'));
+        if(!user) location.href = 'index.html';
 
-            if(!gameId || !pin) {
-                errorMsg.innerText = "সবগুলো ঘর পূরণ করুন!";
-                return;
-            }
-
-            btn.disabled = true;
-            btn.innerText = "Checking...";
-
+        async function loadMessages() {
             try {
-                const response = await fetch('/api/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ gameId, pin })
-                });
+                // ব্রাউজারে সরাসরি এপিআই লিঙ্ক না রেখে সার্ভার সাইড এপিআই কল করা হচ্ছে
+                // আমরা 'get-packages' এন্ডপয়েন্টটি ব্যবহার করছি যা নোটিফিকেশনও হ্যান্ডেল করতে পারে
+                const response = await fetch(`/api/get-packages?gameId=${user.gameId}`);
+                
+                if (!response.ok) throw new Error("Failed to fetch");
 
                 const data = await response.json();
+                
+                // আপনার শীটে 'Notifications' ডেটা যদি সার্ভার থেকে আলাদাভাবে পাঠানো হয়
+                // এখানে 'get-packages' এর পরিবর্তে 'get-user-data' এন্ডপয়েন্ট থাকলে সেটিও ব্যবহার করা যায়
+                // আমি সিকুয়েন্স বজায় রাখতে আগের লজিকটিই রাখছি
+                const messages = data.notifications || []; 
+                
+                const list = document.getElementById('messageList');
+                list.innerHTML = "";
 
-                if (response.ok) {
-                    sessionStorage.setItem('user', JSON.stringify(data.user));
-                    window.location.href = 'home.html';
-                } else {
-                    errorMsg.innerText = data.message;
-                    btn.disabled = false;
-                    btn.innerText = "LOGIN";
+                // যদি মেসেজ না থাকে
+                if (messages.length === 0) {
+                    list.innerHTML = "<p style='text-align: center; color:gray; margin-top: 20px;'>No messages found.</p>";
+                    return;
                 }
+
+                // নতুন মেসেজগুলো আগে দেখানোর জন্য Reverse করা
+                messages.reverse().forEach(msg => {
+                    list.innerHTML += `
+                        <div style="background:#161b22; padding:15px; border-radius:10px; margin-bottom:10px; border-left: 4px solid #58a6ff; border-top: 1px solid #30363d; border-right: 1px solid #30363d; border-bottom: 1px solid #30363d;">
+                            <div style="font-size:12px; color:gray; margin-bottom:5px;">${msg.Time}</div>
+                            <div style="font-size:14px; line-height: 1.4;">${msg.Message}</div>
+                        </div>
+                    `;
+                });
             } catch (err) {
-                errorMsg.innerText = "সার্ভার এরর!";
-                btn.disabled = false;
+                document.getElementById('loadingText').innerText = "Failed to load messages. Please refresh.";
             }
         }
+
+        // পেজ লোড হলে মেসেজগুলো দেখাও
+        loadMessages();
     </script>
 </body>
-      </html>
-      
+</html>
