@@ -3,7 +3,7 @@ export default async function handler(req, res) {
     if (req.method !== 'POST') return res.status(405).send();
 
     const { gameId, fee, packageName, userName } = req.body;
-    const SHEETDB_URL = "https://sheetdb.io/api/v1/3dn8ej3m7h685";
+    const SHEETDB_URL = "https://sheetdb.io/api/v1/d6fk2z82ifpco";
 
     try {
         // ১. চেক করা: ইউজার কি ইতিমধ্যে এই প্যাকেজে জয়েন করেছে? (Duplicate Join Prevention)
