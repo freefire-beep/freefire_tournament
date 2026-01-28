@@ -5,184 +5,178 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Elite Nexus - Home</title>
     <style>
-        body { background-color: #0d1117; color: white; margin: 0; padding-bottom: 80px; font-family: 'Segoe UI', sans-serif; overflow-x: hidden; }
+        body { background-color: #0d1117; color: white; margin: 0; padding-bottom: 80px; font-family: 'Inter', sans-serif; }
         
-        /* 🔥 স্টোর বাটন এনিমেশন (আপনার আগের ডিজাইন) */
-        .fire-wrapper { position: relative; width: 60px; height: 60px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; }
-        .flame {
-            position: absolute; bottom: 15px; width: 35px; height: 35px;
-            background: radial-gradient(circle, #ffcc00 20%, #ff4500 60%, rgba(255, 69, 0, 0) 80%);
-            border-radius: 50% 50% 20% 50%; transform: rotate(-45deg);
-            filter: blur(2px); animation: burn 0.4s infinite alternate;
-            box-shadow: 0 0 15px #ff4500; z-index: 1;
-        }
-        @keyframes burn { 0% { transform: rotate(-45deg) scale(1); opacity: 0.8; } 100% { transform: rotate(-45deg) scale(1.1); opacity: 1; } }
-        .store-text { font-size: 10px; font-weight: bold; color: #ffcc00; z-index: 2; margin-bottom: 5px; text-shadow: 0 0 5px black; }
+        /* প্রফেশনাল হেডার */
+        .header { background: #161b22; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #30363d; position: sticky; top: 0; z-index: 1000; }
+        
+        /* স্টোর বাটন - ক্লিন গেমিং লুক */
+        .store-btn { background: linear-gradient(45deg, #f39c12, #d35400); padding: 8px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; text-decoration: none; color: white; font-size: 13px; display: flex; align-items: center; gap: 5px; box-shadow: 0 0 10px rgba(211, 84, 0, 0.4); }
+        
+        /* কয়েন ডিসপ্লে */
+        .coin-box { display: flex; align-items: center; gap: 10px; background: #0d1117; padding: 5px 12px; border-radius: 20px; border: 1px solid #30363d; }
+        .add-coin { color: #238636; text-decoration: none; font-weight: bold; font-size: 18px; }
 
-        /* Header & Coins */
-        .header { background: #161b22; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #30363d; position: sticky; top: 0; z-index: 100; }
-        .coin-section { display: flex; align-items: center; gap: 8px; background: #0d1117; padding: 5px 12px; border-radius: 20px; border: 1px solid #30363d; }
-        .add-coin-btn { background: #238636; color: white; border: none; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; text-decoration: none; font-size: 14px; }
+        /* টুর্নামেন্ট কার্ড */
+        .package-card { background: #161b22; margin: 15px; padding: 18px; border-radius: 12px; border: 1px solid #30363d; transition: 0.3s; }
+        .pkg-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+        .pkg-title { font-size: 18px; font-weight: bold; color: #58a6ff; }
+        
+        /* টাইমার ডিসপ্লে */
+        .timer-display { font-size: 13px; color: #ff7b72; font-family: 'Courier New', monospace; background: rgba(255, 123, 114, 0.15); padding: 5px 10px; border-radius: 5px; margin: 10px 0; display: inline-block; font-weight: bold; }
+        
+        /* প্রাইজ ও ফি তথ্য */
+        .pkg-stats { display: flex; justify-content: space-between; background: #0d1117; padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 13px; border: 1px solid #21262d; }
+        .stat-item span { display: block; color: #8b949e; font-size: 11px; margin-bottom: 2px; }
+        .stat-item b { color: #f2f2f2; }
 
-        /* Package Cards */
-        .package-card { background: #161b22; margin: 15px; padding: 15px; border-radius: 12px; border: 1px solid #30363d; position: relative; }
-        .pkg-title { font-size: 18px; font-weight: bold; color: #58a6ff; margin-bottom: 5px; }
-        
-        /* New Countdown Style */
-        .timer-box { font-size: 13px; color: #ff7b72; margin-bottom: 12px; font-family: 'Courier New', monospace; font-weight: bold; background: rgba(255,123,114,0.1); padding: 4px 8px; border-radius: 4px; display: inline-block; }
-        
-        .pkg-info { font-size: 13px; color: #8b949e; margin-bottom: 15px; display: flex; justify-content: space-between; }
-        
-        .join-btn { width: 100%; padding: 12px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; font-size: 14px; }
-        .btn-active { background: #238636; color: white; box-shadow: 0 4px 12px rgba(35, 134, 54, 0.3); }
+        /* জয়েন বাটন */
+        .join-btn { width: 100%; padding: 12px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; font-size: 14px; transition: 0.2s; }
+        .btn-active { background: #238636; color: white; }
+        .btn-active:active { transform: scale(0.98); }
         .btn-joined { background: #30363d; color: #8b949e; cursor: not-allowed; }
         .btn-expired { background: #da3633; color: white; cursor: not-allowed; }
 
-        /* Bottom Nav */
+        /* বটম ন্যাভ */
         .bottom-nav { position: fixed; bottom: 0; width: 100%; background: #161b22; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #30363d; }
-        .nav-item { color: #8b949e; text-decoration: none; font-size: 12px; text-align: center; }
+        .nav-item { color: #8b949e; text-decoration: none; font-size: 11px; text-align: center; transition: 0.2s; }
         .nav-item.active { color: #58a6ff; }
+        .nav-icon { font-size: 20px; display: block; margin-bottom: 4px; }
 
-        /* Modal */
-        #detailsModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
-        .modal-content { background: #161b22; padding: 25px; border-radius: 15px; width: 85%; max-width: 350px; border: 1px solid #30363d; text-align: center; }
+        /* মডাল */
+        #confirmModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; align-items: center; justify-content: center; }
+        .modal-body { background: #161b22; padding: 25px; border-radius: 12px; width: 85%; max-width: 350px; text-align: center; border: 1px solid #30363d; }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <div style="display: flex; align-items: center; gap: 10px;">
-            <div class="fire-wrapper" onclick="location.href='add-money.html'">
-                <div class="flame"></div>
-                <div class="store-text">STORE</div>
-            </div>
-            <div style="font-weight: bold; font-size: 18px; letter-spacing: 1px;">ELITE <span style="color:#58a6ff;">NEXUS</span></div>
-        </div>
-        
-        <div class="coin-section">
-            <span style="font-size: 14px;">🪙 <span id="userCoins">0</span></span>
-            <a href="add-money.html" class="add-coin-btn">+</a>
+        <a href="store.html" class="store-btn">🛒 SHOP</a>
+        <div style="font-weight: bold; font-size: 18px;">ELITE <span style="color:#58a6ff;">NEXUS</span></div>
+        <div class="coin-box">
+            <span>🪙 <span id="userCoins">0</span></span>
+            <a href="add-money.html" class="add-coin">+</a>
         </div>
     </div>
 
-    <div id="packageContainer">
-        <p style="text-align: center; color: gray; margin-top: 30px;">Loading Tournaments...</p>
+    <div id="packageList">
+        <p style="text-align: center; color: gray; margin-top: 40px;">Loading matches...</p>
     </div>
 
-    <div id="detailsModal">
-        <div class="modal-content">
-            <h3 id="modalTitle" style="color:#58a6ff; margin-top:0;">Confirm Join</h3>
-            <p id="modalInfo" style="font-size: 14px; color: #8b949e; line-height: 1.5;"></p>
-            <div style="display: flex; gap: 10px; margin-top: 25px;">
-                <button onclick="closeM()" style="flex:1; padding:12px; background:#30363d; border:none; color:white; border-radius:8px;">Cancel</button>
-                <button id="joinConfirmBtn" style="flex:1; padding:12px; background:#238636; border:none; color:white; border-radius:8px; font-weight:bold;">Confirm</button>
+    <div id="confirmModal">
+        <div class="modal-body">
+            <h3 style="margin-top:0; color:#58a6ff;">Entry Confirmation</h3>
+            <p id="modalMsg" style="color:#8b949e; font-size: 14px;"></p>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button onclick="closeModal()" style="flex:1; padding:10px; background:#30363d; border:none; color:white; border-radius:6px;">Cancel</button>
+                <button id="finalJoinBtn" style="flex:1; padding:10px; background:#238636; border:none; color:white; border-radius:6px; font-weight:bold;">Join</button>
             </div>
         </div>
     </div>
 
     <nav class="bottom-nav">
-        <a href="home.html" class="nav-item active">🏠<br>Home</a>
-        <a href="inbox.html" class="nav-item">📧<br>Inbox</a>
-        <a href="add-money.html" class="nav-item">💰<br>Add Money</a>
-        <a href="account.html" class="nav-item">👤<br>Account</a>
+        <a href="home.html" class="nav-item active"><span class="nav-icon">🏠</span>Home</a>
+        <a href="inbox.html" class="nav-item"><span class="nav-icon">📧</span>Inbox</a>
+        <a href="add-money.html" class="nav-item"><span class="nav-icon">💰</span>Add Money</a>
+        <a href="account.html" class="nav-item"><span class="nav-icon">👤</span>Account</a>
     </nav>
 
     <script>
-        let user = JSON.parse(sessionStorage.getItem('user'));
+        const user = JSON.parse(sessionStorage.getItem('user'));
         if (!user) location.href = 'index.html';
 
-        let intervals = [];
+        let timers = [];
 
-        async function syncData() {
+        async function loadDashboard() {
             try {
                 const res = await fetch(`/api/get-packages?gameId=${user.gameId}`);
                 const data = await res.json();
                 
                 if (res.ok) {
                     document.getElementById('userCoins').innerText = data.coins;
-                    renderPackages(data.packages, data.joinedPackages || []);
+                    renderMatches(data.packages, data.joinedPackages || []);
                 }
-            } catch (e) {
-                console.error("Fetch Error", e);
+            } catch (err) {
+                console.error("Dashboard Load Error");
             }
         }
 
-        function renderPackages(packages, joinedIds) {
-            const container = document.getElementById('packageContainer');
+        function renderMatches(packages, joinedIds) {
+            const container = document.getElementById('packageList');
             container.innerHTML = "";
-            intervals.forEach(clearInterval);
-            intervals = [];
+            timers.forEach(clearInterval);
+            timers = [];
 
-            packages.forEach((pkg, index) => {
-                const isJoined = joinedIds.includes(String(pkg.Match_ID)) || joinedIds.includes(pkg.Title);
-                const matchTime = new Date(pkg.Time).getTime();
-                const timerId = `timer-${index}`;
+            packages.forEach((match, index) => {
+                const isJoined = joinedIds.includes(String(match.Match_ID)) || joinedIds.includes(match.Title);
+                const startTime = new Date(match.Time).getTime();
+                const timerId = `time-${index}`;
                 const btnId = `btn-${index}`;
 
                 const card = document.createElement('div');
                 card.className = 'package-card';
                 card.innerHTML = `
-                    <div class="pkg-title">${pkg.Title}</div>
-                    <div id="${timerId}" class="timer-box">Loading...</div>
-                    <div class="pkg-info">
-                        <span>Entry: ${pkg.Fee} 🪙</span>
-                        <span>Prize: ${pkg.Prize || 'N/A'} 🏆</span>
+                    <div class="pkg-header">
+                        <div class="pkg-title">${match.Title}</div>
+                        <div style="font-size: 11px; color: #8b949e; background: #21262d; padding: 2px 8px; border-radius: 10px;">ID: ${match.Match_ID}</div>
+                    </div>
+                    <div id="${timerId}" class="timer-display">Initializing...</div>
+                    <div class="pkg-stats">
+                        <div class="stat-item"><span>Entry Fee</span><b>${match.Fee} 🪙</b></div>
+                        <div class="stat-item"><span>Total Prize</span><b>${match.Prize || '0'} 🏆</b></div>
+                        <div class="stat-item"><span>Map</span><b>${match.Map || 'Classic'}</b></div>
                     </div>
                     <button id="${btnId}" class="join-btn ${isJoined ? 'btn-joined' : 'btn-active'}">
-                        ${isJoined ? 'Already Joined ✅' : 'Join Tournament'}
+                        ${isJoined ? 'Entry Confirmed ✅' : 'JOIN MATCH'}
                     </button>
                 `;
                 container.appendChild(card);
 
                 if (!isJoined) {
-                    card.querySelector('button').onclick = () => openJoinModal(pkg);
+                    card.querySelector('button').onclick = () => openModal(match);
                 }
 
-                startCountdown(matchTime, timerId, btnId, isJoined);
+                runCountdown(startTime, timerId, btnId, isJoined);
             });
         }
 
-        function startCountdown(targetTime, timerId, btnId, isJoined) {
-            function update() {
-                const now = new Date().getTime();
-                const diff = targetTime - now;
-                const timerEl = document.getElementById(timerId);
-                const btnEl = document.getElementById(btnId);
+        function runCountdown(target, displayId, btnId, joined) {
+            function tick() {
+                const diff = target - new Date().getTime();
+                const el = document.getElementById(displayId);
+                const btn = document.getElementById(btnId);
 
                 if (diff <= 0) {
-                    if (timerEl) timerEl.innerText = "Match Started";
-                    if (btnEl && !isJoined) {
-                        btnEl.innerText = "Expired";
-                        btnEl.className = "join-btn btn-expired";
-                        btnEl.onclick = null;
+                    if (el) el.innerText = "Match Started";
+                    if (btn && !joined) {
+                        btn.innerText = "Registration Closed";
+                        btn.className = "join-btn btn-expired";
+                        btn.onclick = null;
                     }
                     return;
                 }
 
-                const d = Math.floor(diff / (1000 * 60 * 60 * 24));
-                const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-                const s = Math.floor((diff % (1000 * 60)) / 1000);
+                const d = Math.floor(diff / 86400000);
+                const h = Math.floor((diff % 86400000) / 3600000);
+                const m = Math.floor((diff % 3600000) / 60000);
+                const s = Math.floor((diff % 60000) / 1000);
 
-                if (timerEl) {
-                    timerEl.innerText = `Starts in: ${d}d ${h}h ${m}m ${s}s`;
-                }
+                if (el) el.innerText = `Starts in: ${d}d ${h}h ${m}m ${s}s`;
             }
-            update();
-            intervals.push(setInterval(update, 1000));
+            tick();
+            timers.push(setInterval(tick, 1000));
         }
 
-        function openJoinModal(pkg) {
-            document.getElementById('modalTitle').innerText = pkg.Title;
-            document.getElementById('modalInfo').innerText = `আপনি কি ${pkg.Fee} কয়েন দিয়ে এই টুর্নামেন্টে জয়েন করতে চান?`;
-            document.getElementById('joinConfirmBtn').onclick = () => confirmJoin(pkg);
-            document.getElementById('detailsModal').style.display = 'flex';
+        function openModal(match) {
+            document.getElementById('modalMsg').innerText = `${match.Title} এ জয়েন করতে আপনার অ্যাকাউন্ট থেকে ${match.Fee} কয়েন কাটা হবে।`;
+            document.getElementById('finalJoinBtn').onclick = () => processJoin(match);
+            document.getElementById('confirmModal').style.display = 'flex';
         }
 
-        async function confirmJoin(pkg) {
-            const btn = document.getElementById('joinConfirmBtn');
+        async function processJoin(match) {
+            const btn = document.getElementById('finalJoinBtn');
             btn.disabled = true;
-            btn.innerText = "Joining...";
+            btn.innerText = "Processing...";
 
             try {
                 const res = await fetch('/api/purchase', {
@@ -190,29 +184,31 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
                         gameId: user.gameId, 
-                        fee: pkg.Fee, 
-                        packageName: pkg.Title,
-                        matchId: pkg.Match_ID,
+                        fee: match.Fee, 
+                        packageName: match.Title,
+                        matchId: match.Match_ID,
                         userName: user.name 
                     })
                 });
-                const result = await res.json();
+                
+                const data = await res.json();
                 if (res.ok) {
-                    alert("সফলভাবে জয়েন করেছেন! ✅");
+                    alert("জয়েন সফল হয়েছে! ইনবক্স চেক করুন।");
                     location.reload();
                 } else {
-                    alert(result.message);
+                    alert(data.message);
                     btn.disabled = false;
-                    btn.innerText = "Confirm";
+                    btn.innerText = "Join";
                 }
             } catch (e) {
-                alert("নেটওয়ার্ক সমস্যা!");
+                alert("সার্ভার ত্রুটি!");
                 btn.disabled = false;
             }
         }
 
-        function closeM() { document.getElementById('detailsModal').style.display = 'none'; }
-        syncData();
+        function closeModal() { document.getElementById('confirmModal').style.display = 'none'; }
+        
+        loadDashboard();
     </script>
 </body>
 </html>
