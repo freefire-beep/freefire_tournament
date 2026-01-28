@@ -7,16 +7,34 @@
     <style>
         body { background-color: #0d1117; color: white; margin: 0; padding-bottom: 80px; font-family: 'Segoe UI', sans-serif; overflow-x: hidden; }
         
-        .header { background: #161b22; padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #30363d; sticky: top; z-index: 100; }
-        .coin-box { background: #238636; padding: 5px 12px; border-radius: 20px; font-weight: bold; font-size: 14px; }
-        
+        /* 🔥 স্টোর বাটন এনিমেশন (আপনার আগের ডিজাইন) */
+        .fire-wrapper { position: relative; width: 60px; height: 60px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; }
+        .flame {
+            position: absolute; bottom: 15px; width: 35px; height: 35px;
+            background: radial-gradient(circle, #ffcc00 20%, #ff4500 60%, rgba(255, 69, 0, 0) 80%);
+            border-radius: 50% 50% 20% 50%; transform: rotate(-45deg);
+            filter: blur(2px); animation: burn 0.4s infinite alternate;
+            box-shadow: 0 0 15px #ff4500; z-index: 1;
+        }
+        @keyframes burn { 0% { transform: rotate(-45deg) scale(1); opacity: 0.8; } 100% { transform: rotate(-45deg) scale(1.1); opacity: 1; } }
+        .store-text { font-size: 10px; font-weight: bold; color: #ffcc00; z-index: 2; margin-bottom: 5px; text-shadow: 0 0 5px black; }
+
+        /* Header & Coins */
+        .header { background: #161b22; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #30363d; position: sticky; top: 0; z-index: 100; }
+        .coin-section { display: flex; align-items: center; gap: 8px; background: #0d1117; padding: 5px 12px; border-radius: 20px; border: 1px solid #30363d; }
+        .add-coin-btn { background: #238636; color: white; border: none; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; text-decoration: none; font-size: 14px; }
+
+        /* Package Cards */
         .package-card { background: #161b22; margin: 15px; padding: 15px; border-radius: 12px; border: 1px solid #30363d; position: relative; }
-        .pkg-title { font-size: 18px; font-weight: bold; color: #58a6ff; margin-bottom: 10px; }
+        .pkg-title { font-size: 18px; font-weight: bold; color: #58a6ff; margin-bottom: 5px; }
         
-        .timer-box { font-size: 13px; color: #ff7b72; margin-bottom: 10px; font-family: monospace; font-weight: bold; }
+        /* New Countdown Style */
+        .timer-box { font-size: 13px; color: #ff7b72; margin-bottom: 12px; font-family: 'Courier New', monospace; font-weight: bold; background: rgba(255,123,114,0.1); padding: 4px 8px; border-radius: 4px; display: inline-block; }
         
-        .join-btn { width: 100%; padding: 10px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        .btn-active { background: #238636; color: white; }
+        .pkg-info { font-size: 13px; color: #8b949e; margin-bottom: 15px; display: flex; justify-content: space-between; }
+        
+        .join-btn { width: 100%; padding: 12px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; font-size: 14px; }
+        .btn-active { background: #238636; color: white; box-shadow: 0 4px 12px rgba(35, 134, 54, 0.3); }
         .btn-joined { background: #30363d; color: #8b949e; cursor: not-allowed; }
         .btn-expired { background: #da3633; color: white; cursor: not-allowed; }
 
@@ -26,28 +44,38 @@
         .nav-item.active { color: #58a6ff; }
 
         /* Modal */
-        #detailsModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center; }
-        .modal-content { background: #161b22; padding: 20px; border-radius: 12px; width: 85%; max-width: 400px; border: 1px solid #30363d; }
+        #detailsModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+        .modal-content { background: #161b22; padding: 25px; border-radius: 15px; width: 85%; max-width: 350px; border: 1px solid #30363d; text-align: center; }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <div style="font-weight: bold; font-size: 20px;">ELITE <span style="color:#58a6ff;">NEXUS</span></div>
-        <div class="coin-box">🪙 <span id="userCoins">0</span></div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <div class="fire-wrapper" onclick="location.href='add-money.html'">
+                <div class="flame"></div>
+                <div class="store-text">STORE</div>
+            </div>
+            <div style="font-weight: bold; font-size: 18px; letter-spacing: 1px;">ELITE <span style="color:#58a6ff;">NEXUS</span></div>
+        </div>
+        
+        <div class="coin-section">
+            <span style="font-size: 14px;">🪙 <span id="userCoins">0</span></span>
+            <a href="add-money.html" class="add-coin-btn">+</a>
+        </div>
     </div>
 
     <div id="packageContainer">
-        <p style="text-align: center; color: gray; margin-top: 20px;">Loading Tournaments...</p>
+        <p style="text-align: center; color: gray; margin-top: 30px;">Loading Tournaments...</p>
     </div>
 
     <div id="detailsModal">
         <div class="modal-content">
             <h3 id="modalTitle" style="color:#58a6ff; margin-top:0;">Confirm Join</h3>
-            <p id="modalInfo" style="font-size: 14px; color: #8b949e;"></p>
-            <div style="display: flex; gap: 10px; margin-top: 20px;">
-                <button onclick="closeM()" style="flex:1; padding:10px; background:#30363d; border:none; color:white; border-radius:5px;">Cancel</button>
-                <button id="joinConfirmBtn" style="flex:1; padding:10px; background:#238636; border:none; color:white; border-radius:5px;">Confirm</button>
+            <p id="modalInfo" style="font-size: 14px; color: #8b949e; line-height: 1.5;"></p>
+            <div style="display: flex; gap: 10px; margin-top: 25px;">
+                <button onclick="closeM()" style="flex:1; padding:12px; background:#30363d; border:none; color:white; border-radius:8px;">Cancel</button>
+                <button id="joinConfirmBtn" style="flex:1; padding:12px; background:#238636; border:none; color:white; border-radius:8px; font-weight:bold;">Confirm</button>
             </div>
         </div>
     </div>
@@ -63,7 +91,6 @@
         let user = JSON.parse(sessionStorage.getItem('user'));
         if (!user) location.href = 'index.html';
 
-        let packagesData = [];
         let intervals = [];
 
         async function syncData() {
@@ -73,7 +100,6 @@
                 
                 if (res.ok) {
                     document.getElementById('userCoins').innerText = data.coins;
-                    packagesData = data.packages;
                     renderPackages(data.packages, data.joinedPackages || []);
                 }
             } catch (e) {
@@ -84,26 +110,26 @@
         function renderPackages(packages, joinedIds) {
             const container = document.getElementById('packageContainer');
             container.innerHTML = "";
-            
-            // আগের টাইমারগুলো ক্লিয়ার করা
             intervals.forEach(clearInterval);
             intervals = [];
 
             packages.forEach((pkg, index) => {
-                const isJoined = joinedIds.includes(pkg.Match_ID) || joinedIds.includes(pkg.Title);
+                const isJoined = joinedIds.includes(String(pkg.Match_ID)) || joinedIds.includes(pkg.Title);
                 const matchTime = new Date(pkg.Time).getTime();
                 const timerId = `timer-${index}`;
+                const btnId = `btn-${index}`;
 
                 const card = document.createElement('div');
                 card.className = 'package-card';
                 card.innerHTML = `
                     <div class="pkg-title">${pkg.Title}</div>
-                    <div id="${timerId}" class="timer-box">Calculating time...</div>
-                    <div style="font-size: 14px; color: #8b949e; margin-bottom: 12px;">
-                        Entry Fee: ${pkg.Fee} 🪙 | Prize: ${pkg.Prize || 'N/A'}
+                    <div id="${timerId}" class="timer-box">Loading...</div>
+                    <div class="pkg-info">
+                        <span>Entry: ${pkg.Fee} 🪙</span>
+                        <span>Prize: ${pkg.Prize || 'N/A'} 🏆</span>
                     </div>
-                    <button id="btn-${index}" class="join-btn ${isJoined ? 'btn-joined' : 'btn-active'}">
-                        ${isJoined ? 'Already Joined' : 'Join Now'}
+                    <button id="${btnId}" class="join-btn ${isJoined ? 'btn-joined' : 'btn-active'}">
+                        ${isJoined ? 'Already Joined ✅' : 'Join Tournament'}
                     </button>
                 `;
                 container.appendChild(card);
@@ -112,24 +138,23 @@
                     card.querySelector('button').onclick = () => openJoinModal(pkg);
                 }
 
-                // টাইমার সেট করা
-                startTimer(matchTime, timerId, `btn-${index}`, isJoined);
+                startCountdown(matchTime, timerId, btnId, isJoined);
             });
         }
 
-        function startTimer(targetTime, displayId, btnId, isJoined) {
+        function startCountdown(targetTime, timerId, btnId, isJoined) {
             function update() {
                 const now = new Date().getTime();
                 const diff = targetTime - now;
-                const timerElement = document.getElementById(displayId);
-                const btn = document.getElementById(btnId);
+                const timerEl = document.getElementById(timerId);
+                const btnEl = document.getElementById(btnId);
 
                 if (diff <= 0) {
-                    if (timerElement) timerElement.innerText = "Match Started / Expired";
-                    if (btn && !isJoined) {
-                        btn.innerText = "Expired";
-                        btn.className = "join-btn btn-expired";
-                        btn.onclick = null;
+                    if (timerEl) timerEl.innerText = "Match Started";
+                    if (btnEl && !isJoined) {
+                        btnEl.innerText = "Expired";
+                        btnEl.className = "join-btn btn-expired";
+                        btnEl.onclick = null;
                     }
                     return;
                 }
@@ -139,23 +164,19 @@
                 const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
                 const s = Math.floor((diff % (1000 * 60)) / 1000);
 
-                if (timerElement) {
-                    timerElement.innerText = `Starts in: ${d}d ${h}h ${m}m ${s}s`;
+                if (timerEl) {
+                    timerEl.innerText = `Starts in: ${d}d ${h}h ${m}m ${s}s`;
                 }
             }
-            
             update();
-            const interval = setInterval(update, 1000);
-            intervals.push(interval);
+            intervals.push(setInterval(update, 1000));
         }
 
         function openJoinModal(pkg) {
-            const modal = document.getElementById('detailsModal');
             document.getElementById('modalTitle').innerText = pkg.Title;
-            document.getElementById('modalInfo').innerText = `Entry Fee: ${pkg.Fee} coins. Do you want to join this tournament?`;
-            
+            document.getElementById('modalInfo').innerText = `আপনি কি ${pkg.Fee} কয়েন দিয়ে এই টুর্নামেন্টে জয়েন করতে চান?`;
             document.getElementById('joinConfirmBtn').onclick = () => confirmJoin(pkg);
-            modal.style.display = 'flex';
+            document.getElementById('detailsModal').style.display = 'flex';
         }
 
         async function confirmJoin(pkg) {
@@ -171,28 +192,26 @@
                         gameId: user.gameId, 
                         fee: pkg.Fee, 
                         packageName: pkg.Title,
-                        matchId: pkg.Match_ID || "",
+                        matchId: pkg.Match_ID,
                         userName: user.name 
                     })
                 });
-                
                 const result = await res.json();
                 if (res.ok) {
-                    alert("Joined Successfully! ✅");
+                    alert("সফলভাবে জয়েন করেছেন! ✅");
                     location.reload();
                 } else {
-                    alert(result.message || "Join failed!");
+                    alert(result.message);
                     btn.disabled = false;
-                    btn.innerText = "Confirm Join";
+                    btn.innerText = "Confirm";
                 }
             } catch (e) {
-                alert("Error! Try again.");
+                alert("নেটওয়ার্ক সমস্যা!");
                 btn.disabled = false;
             }
         }
 
         function closeM() { document.getElementById('detailsModal').style.display = 'none'; }
-
         syncData();
     </script>
 </body>
