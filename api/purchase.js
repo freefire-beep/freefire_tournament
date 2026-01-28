@@ -2,7 +2,7 @@ export default async function handler(req, res) {
     if (req.method !== 'POST') return res.status(405).send();
 
     const { gameId, fee, packageName, userName, matchId } = req.body;
-    const SHEETDB_URL = "https://sheetdb.io/api/v1/d6fk2z82ifpco";
+    const SHEETDB_URL = "https://sheetdb.io/api/v1/kn4x6d50pr5dm";
 
     if (!gameId || !fee || !matchId) {
         return res.status(400).json({ message: "প্রয়োজনীয় তথ্য পাওয়া যায়নি!" });
