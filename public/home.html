@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Elite Nexus - Home</title>
     <style>
-        body { background-color: #0d1117; color: white; margin: 0; padding-bottom: 80px; font-family: 'Segoe UI', sans-serif; }
+        body { background-color: #0d1117; color: white; margin: 0; padding-bottom: 80px; font-family: 'Segoe UI', sans-serif; overflow-x: hidden; }
 
         /* 🔥 স্টোর বাটন এনিমেশন */
         .fire-wrapper { position: relative; width: 60px; height: 60px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; }
@@ -35,13 +35,12 @@
         .nav-btn { background:none; border:none; color:gray; cursor:pointer; font-size: 14px; text-decoration: none; display: flex; flex-direction: column; align-items: center; gap: 4px; }
         .nav-btn.active { color:#58a6ff; font-weight:bold; }
         
-        /* 🚫 জয়েন করা বাটনের স্টাইল (কালো/ডিজেবল) */
-        button:disabled { 
+        /* 🚫 পার্মানেন্টলি ডিজেবল বাটন স্টাইল */
+        .btn-disabled {
             background: #21262d !important; 
             color: #484f58 !important; 
             border: 1px solid #30363d !important;
             cursor: not-allowed !important;
-            box-shadow: none !important;
         }
     </style>
 </head>
@@ -79,7 +78,7 @@
             <div class="detail-item">🏆 <b>Prize:</b> <span id="mPrize" style="color:white"></span></div>
             <div class="detail-item">📜 <b>Rules:</b> <span id="mRules" style="color:white"></span></div>
             <div style="margin-top: 25px; display: flex; gap: 10px;">
-                <button onclick="closeM()" style="flex:1; padding:12px; background:#30363d; color:white; border:none; border-radius:10px; cursor:pointer;">বাতিল</button>
+                <button id="cancelBtn" onclick="closeM()" style="flex:1; padding:12px; background:#30363d; color:white; border:none; border-radius:10px; cursor:pointer;">বাতিল</button>
                 <button id="joinConfirmBtn" style="flex:2; padding:12px; background:linear-gradient(45deg, #238636, #2ea043); color:white; border:none; border-radius:10px; font-weight:bold; cursor:pointer;">নিশ্চিত করুন</button>
             </div>
         </div>
@@ -96,43 +95,40 @@
         if (!user) window.location.href = 'index.html';
 
         let allPackages = [];
-        let isGlobalLocked = false; 
+        let isProcessing = false; // গ্লোবাল ফ্রিজ কন্ট্রোলার
 
-        // ১. পেজ লোড হওয়ার সাথে সাথেই ডাটা সিঙ্ক হবে
         async function syncData() {
             try {
-                // আপনার ব্যাকএন্ড এপিআই রুট ব্যবহার করা হয়েছে (নিরাপদ)
+                // ব্যাকএন্ড থেকে ডাটা আনা (আপনার existing API)
                 const res = await fetch(`/api/get-packages?gameId=${user.gameId}`);
                 const data = await res.json();
                 
                 allPackages = data.packages;
                 document.getElementById('userCoins').innerText = data.coins;
                 
-                // ২. জয়েন করা লিস্টসহ বাটন রেন্ডার হবে (ক্লিক করার আগেই ডিজেবল হবে)
-                renderPackages(data.joinedPackages || []);
-            } catch (err) { 
-                document.getElementById('tournamentList').innerHTML = "লোড করতে ব্যর্থ হয়েছে।";
-            }
+                // বাটন রেন্ডার করার সময় "joinedPackages" এর সাথে মিলিয়ে পার্মানেন্ট ডিজেবল করা
+                renderMatches(data.joinedPackages || []);
+            } catch (err) { console.error(err); }
         }
 
-        function renderPackages(joinedList) {
+        function renderMatches(joinedList) {
             const list = document.getElementById('tournamentList');
             list.innerHTML = "";
 
             allPackages.forEach(pkg => {
-                // 🔍 চেক: ইউজার কি এই প্যাকেজে আগে থেকেই জয়েন করা?
-                const hasJoined = joinedList.includes(pkg.Title);
+                // চেক করা হচ্ছে সে জয়েন করা কি না
+                const isJoined = joinedList.includes(pkg.Title);
 
                 list.innerHTML += `
                     <div style="background: #161b22; padding: 18px; border-radius: 15px; border: 1px solid #30363d; margin-bottom: 15px;">
                         <h3 style="margin: 0;">${pkg.Title}</h3>
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
                             <div style="color: gray;">Entry: <span style="color:#f0e68c;">${pkg.Fee} 🪙</span></div>
-                            <button class="j-btn" 
+                            <button class="j-btn ${isJoined ? 'btn-disabled' : ''}" 
                                 onclick="openM('${pkg.Title}')" 
-                                ${hasJoined ? 'disabled' : ''} 
-                                style="background: ${hasJoined ? '#21262d' : '#238636'}; color: ${hasJoined ? '#8b949e' : 'white'}; border: none; padding: 10px 18px; border-radius: 8px; font-weight: bold;">
-                                ${hasJoined ? 'JOINED ✅' : 'JOIN NOW'}
+                                ${isJoined ? 'disabled' : ''} 
+                                style="background: ${isJoined ? '#21262d' : '#238636'}; color: ${isJoined ? '#484f58' : 'white'}; border: none; padding: 10px 18px; border-radius: 8px; font-weight: bold;">
+                                ${isJoined ? 'JOINED ✅' : 'JOIN NOW'}
                             </button>
                         </div>
                     </div>
@@ -141,28 +137,29 @@
         }
 
         function openM(title) {
-            if(isGlobalLocked) return;
+            if (isProcessing) return; // ফ্রিজ থাকলে কাজ করবে না
             const pkg = allPackages.find(p => p.Title === title);
-            if(!pkg) return;
-
             document.getElementById('mTitle').innerText = pkg.Title;
             document.getElementById('mMap').innerText = pkg.Map || "Bermuda";
             document.getElementById('mTime').innerText = pkg.Time || "TBA";
-            document.getElementById('mPrize').innerText = pkg.Prize_Pool || "Rules Check";
+            document.getElementById('mPrize').innerText = pkg.Prize_Pool || "Check Rules";
             document.getElementById('mRules').innerText = pkg.Rules || "No Hack";
-            
-            document.getElementById('joinConfirmBtn').onclick = () => handlePurchase(pkg.Title, pkg.Fee);
+            document.getElementById('joinConfirmBtn').onclick = () => startPurchase(pkg.Title, pkg.Fee);
             document.getElementById('detailsModal').style.display = 'flex';
         }
 
-        function closeM() { document.getElementById('detailsModal').style.display = 'none'; }
+        function closeM() { 
+            if (isProcessing) return;
+            document.getElementById('detailsModal').style.display = 'none'; 
+        }
 
-        async function handlePurchase(title, fee) {
-            if(isGlobalLocked) return;
-            closeM();
-            if(!confirm(`আপনি কি জয়েন করতে নিশ্চিত?`)) return;
-
-            setLock(true); // ৫ সেকেন্ড লক শুরু
+        async function startPurchase(title, fee) {
+            if (isProcessing) return;
+            
+            // ১. জয়েন রিকোয়েস্ট শুরু - সব বাটন ফ্রিজ করা
+            freezeUI(true);
+            const confirmBtn = document.getElementById('joinConfirmBtn');
+            confirmBtn.innerText = "প্রসেসিং...";
 
             try {
                 const res = await fetch('/api/purchase', {
@@ -170,27 +167,35 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ gameId: user.gameId, fee, packageName: title, userName: user.name })
                 });
-                
                 const result = await res.json();
-                if(res.ok) {
-                    alert("সফলভাবে জয়েন করা হয়েছে!");
-                    await syncData(); // ডাটা রিফ্রেশ করলে বাটন কালো হয়ে যাবে
+
+                if (res.ok) {
+                    alert("জয়েন সফল হয়েছে!");
+                    closeM();
+                    await syncData(); // ডাটা রিফ্রেশ করলে বাটনটি অটো কালো হয়ে যাবে
                 } else {
                     alert(result.message);
                 }
             } catch (e) {
-                alert("নেটওয়ার্ক সমস্যা!");
+                alert("সার্ভার সমস্যা!");
             }
 
-            setTimeout(() => setLock(false), 5000); // ৫ সেকেন্ড পর লক শেষ
+            // ২. রিকোয়েস্ট শেষ - ফ্রিজ থেকে মুক্তি (৫ সেকেন্ড সেফটি ডিলে)
+            setTimeout(() => {
+                freezeUI(false);
+                confirmBtn.innerText = "নিশ্চিত করুন";
+            }, 5000);
         }
 
-        function setLock(state) {
-            isGlobalLocked = state;
-            const btns = document.querySelectorAll('.j-btn');
-            btns.forEach(b => {
-                // যেগুলো অলরেডি জয়েন করা (✅), সেগুলো সবসময় ডিজেবল থাকবে
-                if (!b.innerText.includes('✅')) b.disabled = state;
+        function freezeUI(state) {
+            isProcessing = state;
+            const allBtns = document.querySelectorAll('.j-btn, #cancelBtn, #joinConfirmBtn');
+            allBtns.forEach(btn => {
+                // যেগুলো অলরেডি জয়েন করা (✅), সেগুলো হাত দেওয়ার দরকার নেই
+                if (!btn.innerText.includes('✅')) {
+                    btn.disabled = state;
+                    btn.style.opacity = state ? "0.5" : "1";
+                }
             });
         }
 
