@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elite Nexus - Home</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body style="background-color: #0d1117; color: white; margin: 0; padding-bottom: 70px;">
+
+    <div style="padding: 10px 15px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; border-bottom: 1px solid #30363d; background: #0d1117;">
+        
+        <div style="display: flex; justify-content: flex-start;">
+            <button onclick="location.href='store.html'" style="background: none; border: none; cursor: pointer; color: white; padding: 0; display: flex; flex-direction: column; align-items: center;">
+                <span style="font-size: 18px;">🛒</span>
+                <span style="font-size: 10px; color: #8b949e; font-weight: bold; margin-top: 2px;">STORE</span>
+            </button>
+        </div>
+
+        <div style="text-align: center;">
+            <h3 style="color: #58a6ff; margin: 0; font-size: 18px; letter-spacing: 1px;">ELITE NEXUS</h3>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end;">
+            <div style="background: #161b22; padding: 5px 12px; border-radius: 20px; border: 1px solid #58a6ff; display: flex; align-items: center; gap: 8px;">
+                <span id="userCoins" style="font-weight: bold; font-size: 14px;">Loading...</span> 🪙
+                <button onclick="location.href='add-money.html'" style="background: #58a6ff; border: none; color: black; border-radius: 50%; width: 22px; height: 22px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; padding: 0;">+</button>
+            </div>
+        </div>
+    </div>
+
+    <div style="padding: 20px;">
+        <h2 style="margin-top: 0; font-size: 20px;">Available Tournaments</h2>
+        <div id="tournamentList">
+            <p id="loadingText" style="text-align: center; color: gray;">Loading tournaments...</p>
+        </div>
+    </div>
+
+    <div style="position: fixed; bottom: 0; width: 100%; background: #161b22; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #30363d;">
+        <button onclick="location.href='inbox.html'" style="background:none; border:none; color:gray; cursor:pointer;">📧 Inbox</button>
+        <button onclick="location.href='home.html'" style="background:none; border:none; color:#58a6ff; cursor:pointer; font-weight:bold;">🏠 Home</button>
+        <button onclick="location.href='account.html'" style="background:none; border:none; color:gray; cursor:pointer;">👤 Account</button>
+    </div>
+
+    <script>
+        const user = JSON.parse(sessionStorage.getItem('user'));
+        if (!user) {
+            window.location.href = 'index.html';
+        }
+
+        async function syncHomeData() {
+            try {
+                const response = await fetch(`/api/get-packages?gameId=${user.gameId}`);
+                const data = await response.json();
+
+                if (!response.ok) throw new Error();
+
+                document.getElementById('userCoins').innerText = data.coins;
+
+                const list = document.getElementById('tournamentList');
+                list.innerHTML = "";
+
+                data.packages.forEach(pkg => {
+                    const isJoined = data.joinedPackages.includes(pkg.Title);
+                    
+                    list.innerHTML += `
+                        <div style="background: #161b22; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #30363d;">
+                            <h4 style="margin: 0 0 10px 0; color: #e6edf3;">${pkg.Title}</h4>
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="color: #8b949e; font-size: 14px;">Entry Fee: ${pkg.Fee} 🪙</span>
+                                <button 
+                                    onclick="joinTournament('${pkg.Title}', ${pkg.Fee})" 
+                                    ${isJoined ? 'disabled' : ''}
+                                    style="background: ${isJoined ? '#30363d' : '#238636'}; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold;">
+                                    ${isJoined ? 'Already Joined' : 'Join Now'}
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+
+            } catch (err) {
+                document.getElementById('loadingText').innerText = "Check your connection.";
+            }
+        }
+
+        async function joinTournament(title, fee) {
+            if (!confirm(`${title}-এ জয়েন করতে আপনার ${fee} কয়েন কাটা হবে। আপনি কি নিশ্চিত?`)) return;
+
+            const allBtns = document.querySelectorAll('button');
+            allBtns.forEach(b => b.disabled = true);
+
+            try {
+                const response = await fetch('/api/purchase', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        gameId: user.gameId, 
+                        fee: fee, 
+                        packageName: title, 
+                        userName: user.name 
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    document.getElementById('userCoins').innerText = data.newBalance;
+                    alert("সফলভাবে জয়েন হয়েছেন!");
+                    syncHomeData();
+                } else {
+                    alert(data.message);
+                    syncHomeData();
+                }
+            } catch (err) {
+                alert("নেটওয়ার্ক সমস্যা! আবার চেষ্টা করুন।");
+            } finally {
+                allBtns.forEach(b => b.disabled = false);
+            }
+        }
+
+        syncHomeData();
+    </script>
+</body>
+</html>
