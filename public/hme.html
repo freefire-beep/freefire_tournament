@@ -4,41 +4,117 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Elite Nexus - Home</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body style="background-color: #0d1117; color: white; margin: 0; padding-bottom: 70px;">
+    <style>
+        /* মূল ব্যাকগ্রাউন্ড এবং ফন্ট */
+        body {
+            background-color: #0d1117;
+            color: white;
+            margin: 0;
+            padding-bottom: 70px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow-x: hidden;
+        }
 
-    <div style="padding: 15px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; border-bottom: 1px solid #30363d; background: #0d1117;">
+        /* আগুনের এনিমেশন কীফ্রেম */
+        @keyframes fire-glow {
+            0% { box-shadow: 0 0 5px #ff4500, 0 0 10px #ff4500, inset 0 0 5px #ff4500; }
+            50% { box-shadow: 0 0 15px #ff0000, 0 0 25px #ff8c00, inset 0 0 10px #ff0000; }
+            100% { box-shadow: 0 0 5px #ff4500, 0 0 10px #ff4500, inset 0 0 5px #ff4500; }
+        }
+
+        /* টাইটেল গ্লো এনিমেশন */
+        @keyframes title-pulse {
+            0% { text-shadow: 0 0 5px #58a6ff; }
+            50% { text-shadow: 0 0 15px #58a6ff, 0 0 25px #005cc5; }
+            100% { text-shadow: 0 0 5px #58a6ff; }
+        }
+
+        /* কার্ড এনিমেশন */
+        .tournament-card {
+            background: #161b22;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #30363d;
+            transition: transform 0.3s ease, border-color 0.3s ease;
+            animation: slideIn 0.5s ease-out;
+        }
+        .tournament-card:hover {
+            transform: translateY(-5px);
+            border-color: #58a6ff;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* স্টোর বাটন স্টাইল */
+        .store-btn {
+            background: #161b22;
+            border: 2px solid #ff4500;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            animation: fire-glow 1.5s infinite alternate;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .store-btn svg {
+            filter: drop-shadow(0 0 5px #ff4500);
+        }
+
+        .store-text {
+            font-size: 10px;
+            color: #ff8c00;
+            font-weight: bold;
+            margin-top: 2px;
+            text-shadow: 0 0 5px #ff4500;
+        }
+    </style>
+</head>
+<body>
+
+    <div style="padding: 12px 15px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; border-bottom: 1px solid #30363d; background: #0d1117; position: sticky; top: 0; z-index: 100;">
         
         <div style="display: flex; justify-content: flex-start;">
-            <button onclick="location.href='store.html'" style="background: none; border: none; cursor: pointer; font-size: 20px; color: white; padding: 0;">
-                🛒
+            <button class="store-btn" onclick="location.href='store.html'">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ff4500" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="9" cy="21" r="1"></circle>
+                    <circle cx="20" cy="21" r="1"></circle>
+                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                </svg>
+                <span class="store-text">STORE</span>
             </button>
         </div>
 
         <div style="text-align: center;">
-            <h3 style="color: #58a6ff; margin: 0; font-size: 18px; letter-spacing: 1px;">ELITE NEXUS</h3>
+            <h3 style="color: #58a6ff; margin: 0; font-size: 18px; letter-spacing: 2px; font-weight: 900; animation: title-pulse 2s infinite;">ELITE NEXUS</h3>
         </div>
 
         <div style="display: flex; justify-content: flex-end;">
-            <div style="background: #161b22; padding: 5px 12px; border-radius: 20px; border: 1px solid #58a6ff; display: flex; align-items: center; gap: 8px;">
-                <span id="userCoins" style="font-weight: bold; font-size: 14px;">Loading...</span> 🪙
-                <button onclick="location.href='add-money.html'" style="background: #58a6ff; border: none; color: black; border-radius: 50%; width: 22px; height: 22px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; padding: 0;">+</button>
+            <div style="background: #161b22; padding: 5px 12px; border-radius: 20px; border: 1px solid #58a6ff; display: flex; align-items: center; gap: 8px; box-shadow: 0 0 10px rgba(88,166,255,0.2);">
+                <span id="userCoins" style="font-weight: bold; font-size: 14px; color: #f0e68c;">...</span> 🪙
+                <button onclick="location.href='add-money.html'" style="background: #58a6ff; border: none; color: black; border-radius: 50%; width: 22px; height: 22px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; transition: 0.3s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">+</button>
             </div>
         </div>
     </div>
 
     <div style="padding: 20px;">
-        <h2 style="margin-top: 0; font-size: 20px;">Available Tournaments</h2>
+        <h2 style="margin-top: 0; font-size: 20px; border-left: 4px solid #58a6ff; padding-left: 10px;">Available Tournaments</h2>
         <div id="tournamentList">
             <p id="loadingText" style="text-align: center; color: gray;">Loading tournaments...</p>
         </div>
     </div>
 
-    <div style="position: fixed; bottom: 0; width: 100%; background: #161b22; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #30363d;">
-        <button onclick="location.href='inbox.html'" style="background:none; border:none; color:gray; cursor:pointer;">📧 Inbox</button>
-        <button onclick="location.href='home.html'" style="background:none; border:none; color:#58a6ff; cursor:pointer; font-weight:bold;">🏠 Home</button>
-        <button onclick="location.href='account.html'" style="background:none; border:none; color:gray; cursor:pointer;">👤 Account</button>
+    <div style="position: fixed; bottom: 0; width: 100%; background: #161b22; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #30363d; box-shadow: 0 -5px 15px rgba(0,0,0,0.5);">
+        <button onclick="location.href='inbox.html'" style="background:none; border:none; color:gray; cursor:pointer; transition: 0.3s;">📧 Inbox</button>
+        <button onclick="location.href='home.html'" style="background:none; border:none; color:#58a6ff; cursor:pointer; font-weight:bold; transform: scale(1.1);">🏠 Home</button>
+        <button onclick="location.href='account.html'" style="background:none; border:none; color:gray; cursor:pointer; transition: 0.3s;">👤 Account</button>
     </div>
 
     <script>
@@ -54,30 +130,31 @@
 
                 if (!response.ok) throw new Error();
 
-                // আপডেট কয়েন
                 document.getElementById('userCoins').innerText = data.coins;
 
-                // টুর্নামেন্ট লিস্ট রেন্ডার
                 const list = document.getElementById('tournamentList');
                 list.innerHTML = "";
 
-                data.packages.forEach(pkg => {
+                data.packages.forEach((pkg, index) => {
                     const isJoined = data.joinedPackages.includes(pkg.Title);
                     
-                    list.innerHTML += `
-                        <div style="background: #161b22; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #30363d;">
-                            <h4 style="margin: 0 0 10px 0; color: #e6edf3;">${pkg.Title}</h4>
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <span style="color: #8b949e; font-size: 14px;">Entry Fee: ${pkg.Fee} 🪙</span>
-                                <button 
-                                    onclick="joinTournament('${pkg.Title}', ${pkg.Fee})" 
-                                    ${isJoined ? 'disabled' : ''}
-                                    style="background: ${isJoined ? '#30363d' : '#238636'}; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold;">
-                                    ${isJoined ? 'Already Joined' : 'Join Now'}
-                                </button>
-                            </div>
+                    // Card with delay animation for each item
+                    const card = document.createElement('div');
+                    card.className = 'tournament-card';
+                    card.style.animationDelay = `${index * 0.1}s`;
+                    card.innerHTML = `
+                        <h4 style="margin: 0 0 10px 0; color: #58a6ff; font-size: 17px;">${pkg.Title}</h4>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="color: #8b949e; font-size: 14px;">Entry Fee: <b style="color: #f0e68c;">${pkg.Fee} 🪙</b></span>
+                            <button 
+                                onclick="joinTournament('${pkg.Title}', ${pkg.Fee})" 
+                                ${isJoined ? 'disabled' : ''}
+                                style="background: ${isJoined ? '#30363d' : 'linear-gradient(45deg, #238636, #2ea043)'}; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
+                                ${isJoined ? 'Joined ✅' : 'JOIN NOW'}
+                            </button>
                         </div>
                     `;
+                    list.appendChild(card);
                 });
 
             } catch (err) {
@@ -107,7 +184,7 @@
 
                 if (response.ok) {
                     document.getElementById('userCoins').innerText = data.newBalance;
-                    alert("সফলভাবে জয়েন হয়েছেন!");
+                    alert("অভিনন্দন! সফলভাবে জয়েন হয়েছেন।");
                     syncHomeData();
                 } else {
                     alert(data.message);
@@ -123,4 +200,5 @@
         syncHomeData();
     </script>
 </body>
-</html>
+        </html>
+                    
