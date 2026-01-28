@@ -7,7 +7,7 @@
     <style>
         body { background-color: #0d1117; color: white; margin: 0; padding-bottom: 80px; font-family: 'Segoe UI', sans-serif; overflow-x: hidden; }
 
-        /* 🔥 রিয়েল ফায়ার এনিমেশন (Animated SVG + CSS) */
+        /* 🔥 স্টোর বাটন এনিমেশন */
         .fire-wrapper { position: relative; width: 60px; height: 60px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; }
         .flame {
             position: absolute; bottom: 15px; width: 35px; height: 35px;
@@ -16,13 +16,10 @@
             filter: blur(2px); animation: burn 0.4s infinite alternate;
             box-shadow: 0 0 15px #ff4500; z-index: 1;
         }
-        @keyframes burn {
-            0% { transform: rotate(-45deg) scale(1); opacity: 0.8; }
-            100% { transform: rotate(-45deg) scale(1.2); opacity: 1; }
-        }
+        @keyframes burn { 0% { transform: rotate(-45deg) scale(1); opacity: 0.8; } 100% { transform: rotate(-45deg) scale(1.2); opacity: 1; } }
         .store-btn-box { position: relative; z-index: 5; background: rgba(22, 27, 34, 0.9); border: 1px solid #ff4500; border-radius: 10px; padding: 4px 8px; text-align: center; }
 
-        /* 📋 Details Modal */
+        /* 📋 মডাল ডিজাইন */
         #detailsModal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.9); z-index: 1000; justify-content: center; align-items: center;
@@ -34,16 +31,17 @@
         @keyframes pop { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         .detail-item { background: #0d1117; padding: 10px; border-radius: 10px; margin-bottom: 8px; border-left: 3px solid #ff4500; font-size: 14px; }
 
-        /* 🔘 Bottom Navigation */
+        /* 🔘 ন্যাভিগেশন */
         .bottom-nav { position: fixed; bottom: 0; width: 100%; background: #161b22; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #30363d; z-index: 100; }
         .nav-btn { background:none; border:none; color:gray; cursor:pointer; font-size: 14px; text-decoration: none; display: flex; flex-direction: column; align-items: center; gap: 4px; }
         .nav-btn.active { color:#58a6ff; font-weight:bold; }
+        
+        button:disabled { opacity: 0.5; cursor: not-allowed !important; }
     </style>
 </head>
 <body>
 
     <div style="padding: 10px 15px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; border-bottom: 1px solid #30363d; position: sticky; top:0; background:#0d1117; z-index:90;">
-        
         <div class="fire-wrapper" onclick="location.href='store.html'">
             <div class="flame"></div>
             <div class="store-btn-box">
@@ -51,13 +49,11 @@
                 <div style="font-size: 8px; color: #ffcc00; font-weight: bold;">STORE</div>
             </div>
         </div>
-
-        <h3 style="color: #58a6ff; letter-spacing: 1px; text-shadow: 0 0 10px rgba(88,166,255,0.5); margin: 0; font-weight: 800;">ELITE NEXUS</h3>
-
+        <h3 style="color: #58a6ff; letter-spacing: 1px; margin: 0; font-weight: 800;">ELITE NEXUS</h3>
         <div style="text-align: right;">
             <div style="background: #161b22; padding: 5px 12px; border-radius: 20px; border: 1px solid #58a6ff; display: inline-flex; align-items: center; gap: 6px;">
                 <span id="userCoins" style="font-weight: bold; color: #f0e68c; font-size: 14px;">...</span> 🪙
-                <button onclick="location.href='add-money.html'" style="background: #58a6ff; border: none; color: black; border-radius: 50%; width: 20px; height: 20px; font-weight: bold; cursor: pointer; font-size: 14px;">+</button>
+                <button onclick="location.href='add-money.html'" style="background: #58a6ff; border: none; color: black; border-radius: 50%; width: 20px; height: 20px; font-weight: bold; cursor: pointer;">+</button>
             </div>
         </div>
     </div>
@@ -65,7 +61,7 @@
     <div style="padding: 20px;">
         <h2 style="font-size: 18px; border-left: 4px solid #58a6ff; padding-left: 10px; margin-bottom: 20px;">Available Matches</h2>
         <div id="tournamentList">
-            <p style="text-align: center; color: gray;">Searching for matches...</p>
+            <p style="text-align: center; color: gray;">লোড হচ্ছে...</p>
         </div>
     </div>
 
@@ -76,10 +72,9 @@
             <div class="detail-item">⏰ <b>Time:</b> <span id="mTime" style="color:white"></span></div>
             <div class="detail-item">🏆 <b>Prize:</b> <span id="mPrize" style="color:white"></span></div>
             <div class="detail-item">📜 <b>Rules:</b> <span id="mRules" style="color:white"></span></div>
-            
             <div style="margin-top: 25px; display: flex; gap: 10px;">
-                <button onclick="closeM()" style="flex:1; padding:12px; background:#30363d; color:white; border:none; border-radius:10px; font-weight:bold; cursor:pointer;">CANCEL</button>
-                <button id="joinConfirmBtn" style="flex:2; padding:12px; background:linear-gradient(45deg, #238636, #2ea043); color:white; border:none; border-radius:10px; font-weight:bold; cursor:pointer;">CONFIRM JOIN</button>
+                <button onclick="closeM()" style="flex:1; padding:12px; background:#30363d; color:white; border:none; border-radius:10px; cursor:pointer;">বাতিল</button>
+                <button id="joinConfirmBtn" style="flex:2; padding:12px; background:linear-gradient(45deg, #238636, #2ea043); color:white; border:none; border-radius:10px; font-weight:bold; cursor:pointer;">নিশ্চিত করুন</button>
             </div>
         </div>
     </div>
@@ -95,75 +90,88 @@
         if (!user) window.location.href = 'index.html';
 
         let allPackages = [];
+        let isLock = false; // গ্লোবাল ক্লিক লক
 
-        // 🛡️ নিরাপদ ডাটা লোড (No Direct SheetDB URL)
-        async function loadData() {
+        async function syncData() {
             try {
                 const res = await fetch(`/api/get-packages?gameId=${user.gameId}`);
                 const data = await res.json();
-                
                 allPackages = data.packages;
                 document.getElementById('userCoins').innerText = data.coins;
+                renderPackages(data.joinedPackages || []);
+            } catch (err) { console.error(err); }
+        }
 
-                const list = document.getElementById('tournamentList');
-                list.innerHTML = "";
-
-                allPackages.forEach(pkg => {
-                    const isJoined = data.joinedPackages.includes(pkg.Title);
-                    list.innerHTML += `
-                        <div style="background: #161b22; padding: 18px; border-radius: 15px; border: 1px solid #30363d; margin-bottom: 15px; transition: 0.3s;">
-                            <h3 style="margin: 0; color: #e6edf3; font-size: 17px;">${pkg.Title}</h3>
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
-                                <div style="color: #8b949e; font-size: 14px;">Entry Fee: <span style="color:#f0e68c; font-weight:bold;">${pkg.Fee} 🪙</span></div>
-                                <button onclick="openM('${pkg.Title}')" style="background: ${isJoined ? '#30363d' : '#238636'}; color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: bold; cursor:pointer;">
-                                    ${isJoined ? 'JOINED ✅' : 'JOIN NOW'}
-                                </button>
-                            </div>
+        function renderPackages(joinedList) {
+            const list = document.getElementById('tournamentList');
+            list.innerHTML = "";
+            allPackages.forEach(pkg => {
+                const alreadyJoined = joinedList.includes(pkg.Title);
+                list.innerHTML += `
+                    <div style="background: #161b22; padding: 18px; border-radius: 15px; border: 1px solid #30363d; margin-bottom: 15px;">
+                        <h3 style="margin: 0;">${pkg.Title}</h3>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
+                            <div style="color: gray;">Entry: <span style="color:#f0e68c;">${pkg.Fee} 🪙</span></div>
+                            <button class="j-btn" 
+                                onclick="openM('${pkg.Title}')" 
+                                ${alreadyJoined ? 'disabled' : ''}
+                                style="background: ${alreadyJoined ? '#30363d' : '#238636'}; color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: bold;">
+                                ${alreadyJoined ? 'JOINED ✅' : 'JOIN NOW'}
+                            </button>
                         </div>
-                    `;
-                });
-            } catch (err) { 
-                document.getElementById('tournamentList').innerHTML = "<p style='color:red; text-align:center;'>Failed to load matches.</p>";
-            }
+                    </div>
+                `;
+            });
         }
 
         function openM(title) {
+            if(isLock) return;
             const pkg = allPackages.find(p => p.Title === title);
-            if(!pkg) return;
             document.getElementById('mTitle').innerText = pkg.Title;
             document.getElementById('mMap').innerText = pkg.Map || "Bermuda";
             document.getElementById('mTime').innerText = pkg.Time || "TBA";
             document.getElementById('mPrize').innerText = pkg.Prize_Pool || "Check Rules";
-            document.getElementById('mRules').innerText = pkg.Rules || "No Hack / No Teamup";
-            
-            document.getElementById('joinConfirmBtn').onclick = () => processJoin(pkg.Title, pkg.Fee);
+            document.getElementById('mRules').innerText = pkg.Rules || "No Hack";
+            document.getElementById('joinConfirmBtn').onclick = () => startJoin(pkg.Title, pkg.Fee);
             document.getElementById('detailsModal').style.display = 'flex';
         }
 
         function closeM() { document.getElementById('detailsModal').style.display = 'none'; }
 
-        async function processJoin(title, fee) {
+        async function startJoin(title, fee) {
+            if(isLock) return;
             closeM();
-            if (!confirm(`Join ${title} match for ${fee} coins?`)) return;
-            
+            if(!confirm("আপনি কি এই ম্যাচটিতে জয়েন করতে চান?")) return;
+
+            // 🛑 ৫ সেকেন্ডের জন্য সব বাটন ব্লক
+            isLock = true;
+            const btns = document.querySelectorAll('.j-btn');
+            btns.forEach(b => b.disabled = true);
+
             try {
-                // 🛡️ নিরাপদ পারচেজ রিকোয়েস্ট (No Direct SheetDB URL)
                 const res = await fetch('/api/purchase', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ gameId: user.gameId, fee, packageName: title, userName: user.name })
                 });
                 const result = await res.json();
-                if(res.ok) { 
-                    alert("Success! You have joined."); 
-                    loadData(); 
-                } else { 
-                    alert(result.message); 
+                if(res.ok) {
+                    alert("জয়েন সফল হয়েছে!");
+                    await syncData();
+                } else {
+                    alert(result.message);
                 }
-            } catch (e) { alert("Server error!"); }
+            } catch (e) { alert("Error!"); }
+
+            // ৫ সেকেন্ড পর লক খোলা
+            setTimeout(() => {
+                isLock = false;
+                syncData(); // পুনরায় বাটন স্টেট চেক
+            }, 5000);
         }
 
-        loadData();
+        syncData();
     </script>
 </body>
-</html>
+                                                       </html>
+                                           
