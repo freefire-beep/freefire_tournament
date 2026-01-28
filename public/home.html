@@ -36,7 +36,13 @@
         .nav-btn { background:none; border:none; color:gray; cursor:pointer; font-size: 14px; text-decoration: none; display: flex; flex-direction: column; align-items: center; gap: 4px; }
         .nav-btn.active { color:#58a6ff; font-weight:bold; }
         
-        button:disabled { opacity: 0.5; cursor: not-allowed !important; }
+        /* 🚫 জয়েন করা বাটনের স্টাইল (কালো/গ্রে) */
+        button:disabled { 
+            background: #21262d !important; 
+            color: #8b949e !important; 
+            border: 1px solid #30363d !important;
+            cursor: not-allowed !important;
+        }
     </style>
 </head>
 <body>
@@ -90,23 +96,31 @@
         if (!user) window.location.href = 'index.html';
 
         let allPackages = [];
-        let isLock = false; // গ্লোবাল ক্লিক লক
+        let isGlobalLocked = false; 
 
         async function syncData() {
             try {
+                // 🛡️ নিরাপদ রিকোয়েস্ট
                 const res = await fetch(`/api/get-packages?gameId=${user.gameId}`);
                 const data = await res.json();
+                
                 allPackages = data.packages;
                 document.getElementById('userCoins').innerText = data.coins;
+                
                 renderPackages(data.joinedPackages || []);
-            } catch (err) { console.error(err); }
+            } catch (err) { 
+                document.getElementById('tournamentList').innerHTML = "লোড করতে ব্যর্থ হয়েছে।";
+            }
         }
 
         function renderPackages(joinedList) {
             const list = document.getElementById('tournamentList');
             list.innerHTML = "";
+
             allPackages.forEach(pkg => {
-                const alreadyJoined = joinedList.includes(pkg.Title);
+                // পেজ লোড হওয়ার সময় চেক: ইউজার কি আগে থেকেই জয়েন করা?
+                const hasJoined = joinedList.includes(pkg.Title);
+
                 list.innerHTML += `
                     <div style="background: #161b22; padding: 18px; border-radius: 15px; border: 1px solid #30363d; margin-bottom: 15px;">
                         <h3 style="margin: 0;">${pkg.Title}</h3>
@@ -114,9 +128,9 @@
                             <div style="color: gray;">Entry: <span style="color:#f0e68c;">${pkg.Fee} 🪙</span></div>
                             <button class="j-btn" 
                                 onclick="openM('${pkg.Title}')" 
-                                ${alreadyJoined ? 'disabled' : ''}
-                                style="background: ${alreadyJoined ? '#30363d' : '#238636'}; color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: bold;">
-                                ${alreadyJoined ? 'JOINED ✅' : 'JOIN NOW'}
+                                ${hasJoined ? 'disabled' : ''}
+                                style="background: ${hasJoined ? '#21262d' : '#238636'}; color: ${hasJoined ? '#8b949e' : 'white'}; border: none; padding: 10px 18px; border-radius: 8px; font-weight: bold;">
+                                ${hasJoined ? 'JOINED ✅' : 'JOIN NOW'}
                             </button>
                         </div>
                     </div>
@@ -125,28 +139,30 @@
         }
 
         function openM(title) {
-            if(isLock) return;
+            if(isGlobalLocked) return;
             const pkg = allPackages.find(p => p.Title === title);
+            if(!pkg) return;
+
             document.getElementById('mTitle').innerText = pkg.Title;
             document.getElementById('mMap').innerText = pkg.Map || "Bermuda";
             document.getElementById('mTime').innerText = pkg.Time || "TBA";
-            document.getElementById('mPrize').innerText = pkg.Prize_Pool || "Check Rules";
+            document.getElementById('mPrize').innerText = pkg.Prize_Pool || "Rules Check";
             document.getElementById('mRules').innerText = pkg.Rules || "No Hack";
-            document.getElementById('joinConfirmBtn').onclick = () => startJoin(pkg.Title, pkg.Fee);
+            
+            document.getElementById('joinConfirmBtn').onclick = () => handlePurchase(pkg.Title, pkg.Fee);
             document.getElementById('detailsModal').style.display = 'flex';
         }
 
         function closeM() { document.getElementById('detailsModal').style.display = 'none'; }
 
-        async function startJoin(title, fee) {
-            if(isLock) return;
+        async function handlePurchase(title, fee) {
+            if(isGlobalLocked) return;
             closeM();
-            if(!confirm("আপনি কি এই ম্যাচটিতে জয়েন করতে চান?")) return;
+            
+            if(!confirm(`আপনি কি ${fee} কয়েন দিয়ে জয়েন করতে চান?`)) return;
 
-            // 🛑 ৫ সেকেন্ডের জন্য সব বাটন ব্লক
-            isLock = true;
-            const btns = document.querySelectorAll('.j-btn');
-            btns.forEach(b => b.disabled = true);
+            // ৫ সেকেন্ড লক
+            setLock(true);
 
             try {
                 const res = await fetch('/api/purchase', {
@@ -154,24 +170,31 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ gameId: user.gameId, fee, packageName: title, userName: user.name })
                 });
+                
                 const result = await res.json();
+                
                 if(res.ok) {
-                    alert("জয়েন সফল হয়েছে!");
-                    await syncData();
+                    alert("সফলভাবে জয়েন করা হয়েছে!");
+                    await syncData(); // বাটন কালো করার জন্য রিলোড
                 } else {
                     alert(result.message);
                 }
-            } catch (e) { alert("Error!"); }
+            } catch (e) {
+                alert("নেটওয়ার্ক সমস্যা!");
+            }
 
-            // ৫ সেকেন্ড পর লক খোলা
-            setTimeout(() => {
-                isLock = false;
-                syncData(); // পুনরায় বাটন স্টেট চেক
-            }, 5000);
+            setTimeout(() => setLock(false), 5000);
+        }
+
+        function setLock(state) {
+            isGlobalLocked = state;
+            const btns = document.querySelectorAll('.j-btn');
+            btns.forEach(b => {
+                if (!b.innerText.includes('✅')) b.disabled = state;
+            });
         }
 
         syncData();
     </script>
 </body>
-                                                       </html>
-                                           
+</html>
