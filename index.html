@@ -1,1 +1,213 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ড্যাশবোর্ড - টুর্নামেন্ট প্রো</title>
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #00d2ff;
+            --secondary-color: #3a7bd5;
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-color: #f8fafc;
+        }
 
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Hind Siliguri', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            direction: ltr;
+        }
+
+        /* হেডার স্টাইল */
+        header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom-left-radius: 20px;
+            border-bottom-right-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .user-info h2 { margin: 0; font-size: 1.2rem; }
+        .balance-box {
+            background: rgba(255,255,255,0.2);
+            padding: 5px 15px;
+            border-radius: 50px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* প্যাকেজ লিস্ট স্টাইল */
+        .container { padding: 20px; }
+        .package-card {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: 0.3s;
+        }
+
+        .package-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .status-badge {
+            background: #22c55e;
+            padding: 2px 10px;
+            border-radius: 5px;
+            font-size: 0.8rem;
+        }
+
+        .timer {
+            color: #fbbf24;
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin: 10px 0;
+        }
+
+        .details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 15px 0;
+            font-size: 0.9rem;
+        }
+
+        .join-btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(90deg, #00d2ff, #3a7bd5);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: 'Hind Siliguri';
+        }
+
+        .join-btn:disabled { background: #64748b; cursor: not-allowed; }
+
+        /* বটম নেভিগেশন */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background: var(--card-bg);
+            display: flex;
+            justify-content: space-around;
+            padding: 15px 0;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="user-info">
+            <h2 id="display-name">লোড হচ্ছে...</h2>
+            <small>স্বাগতম!</small>
+        </div>
+        <div class="balance-box">
+            🪙 <span id="user-coins">0</span>
+        </div>
+    </header>
+
+    <div class="container" id="package-list">
+        <p style="text-align: center;">টুর্নামেন্ট খোঁজা হচ্ছে...</p>
+    </div>
+
+    <div style="height: 80px;"></div> <nav class="bottom-nav">
+        <span>🏠 হোম</span>
+        <span onclick="location.href='zstore.html'">🛒 স্টোর</span>
+        <span onclick="location.href='zinbox.html'">🔔 ইনবক্স</span>
+        <span onclick="location.href='zaccount.html'">👤 প্রোফাইল</span>
+    </nav>
+
+    <script src="config.js"></script>
+    <script>
+        // ডামি ডাটা দিয়ে চেক করার জন্য এবং পরে এপিআই সিঙ্ক করার লজিক
+        async function fetchPackages() {
+            try {
+                const response = await fetch(`${CONFIG.API_URL}?action=getPackages`);
+                const data = await response.json();
+                renderPackages(data);
+            } catch (error) {
+                console.error("প্যাকেজ লোড করতে সমস্যা:", error);
+                document.getElementById('package-list').innerHTML = "ডাটা লোড করতে ব্যর্থ।";
+            }
+        }
+
+        function renderPackages(packages) {
+            const listContainer = document.getElementById('package-list');
+            listContainer.innerHTML = '';
+
+            packages.forEach(pkg => {
+                const card = document.createElement('div');
+                card.className = 'package-card';
+                card.innerHTML = `
+                    <div class="package-header">
+                        <h3>${pkg.title}</h3>
+                        <span class="status-badge">${pkg.status}</span>
+                    </div>
+                    <div class="timer" id="timer-${pkg.package_id}">টাইমার লোড হচ্ছে...</div>
+                    <div class="details">
+                        <div>Entry: 🪙 ${pkg.entry_fee}</div>
+                        <div>Prize: 💰 ${pkg.prize_pool}</div>
+                        <div>Slots: ${pkg.joined_count}/${pkg.total_slots}</div>
+                    </div>
+                    <button class="join-btn" onclick="joinMatch('${pkg.package_id}')" 
+                        ${pkg.status !== 'Open' ? 'disabled' : ''}>
+                        ${pkg.status === 'Open' ? 'জয়েন করুন' : 'বন্ধ আছে'}
+                    </button>
+                `;
+                listContainer.appendChild(card);
+                startTimer(pkg.start_time, `timer-${pkg.package_id}`);
+            });
+        }
+
+        function startTimer(startTime, elementId) {
+            const target = new Date(startTime).getTime();
+            
+            const interval = setInterval(() => {
+                const now = new Date().getTime();
+                const distance = target - now;
+
+                if (distance < 0) {
+                    clearInterval(interval);
+                    document.getElementById(elementId).innerHTML = "টুর্নামেন্ট শুরু হয়ে গেছে!";
+                    return;
+                }
+
+                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                document.getElementById(elementId).innerHTML = 
+                    `সময় বাকি: ${hours}ঘণ্টা ${minutes}মিনিট ${seconds}সেকেন্ড`;
+            }, 1000);
+        }
+
+        // পেজ লোড হলে ফাংশন রান করবে
+        window.onload = () => {
+            fetchPackages();
+            // এখানে ইউজার ব্যালেন্স সিঙ্ক করার লজিক আসবে (zsync.js থেকে)
+        };
+    </script>
+</body>
+  </html>
+  
