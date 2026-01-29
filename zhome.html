@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Z-Tournament | Home</title>
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: #ffce00;
+            --secondary: #fe4a49;
+            --bg-dark: #0f0c29;
+            --glass: rgba(255, 255, 255, 0.1);
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --text-white: #ffffff;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Hind Siliguri', sans-serif; }
+
+        body {
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            color: var(--text-white);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Premium Header */
+        header {
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(15, 12, 41, 0.8);
+            backdrop-filter: blur(15px);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .logo { font-size: 22px; font-weight: 700; letter-spacing: 1px; }
+        .logo span { color: var(--primary); }
+
+        .coin-btn {
+            background: rgba(255, 206, 0, 0.15);
+            padding: 6px 15px;
+            border-radius: 50px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid var(--primary);
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .coin-btn:active { transform: scale(0.95); }
+        .coin-btn i { color: var(--primary); font-size: 18px; }
+        #coin-count { font-weight: bold; font-size: 16px; }
+
+        /* Main Container */
+        .container { padding: 20px; max-width: 600px; margin: 0 auto; }
+
+        .welcome-msg { margin-bottom: 25px; animation: fadeIn 1s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .section-header h2 { font-size: 20px; font-weight: 600; }
+        .live-dot { height: 10px; width: 10px; background: #00ff00; border-radius: 50%; box-shadow: 0 0 10px #00ff00; animation: blink 1.5s infinite; }
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+
+        /* Tournament Card Style */
+        .package-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 18px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(5px);
+            position: relative;
+            transition: 0.3s;
+        }
+        .package-card:hover { border-color: var(--primary); }
+
+        .timer-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: var(--secondary);
+            font-size: 12px;
+            font-weight: bold;
+            padding: 4px 10px;
+            border-radius: 6px;
+            box-shadow: 0 4px 10px rgba(254, 74, 73, 0.3);
+        }
+
+        .pkg-title { font-size: 19px; font-weight: 700; margin-bottom: 15px; color: var(--primary); }
+
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .stat-box { background: rgba(0,0,0,0.2); padding: 10px; border-radius: 12px; text-align: center; }
+        .stat-label { font-size: 11px; color: #aaa; display: block; margin-bottom: 4px; }
+        .stat-value { font-size: 15px; font-weight: bold; }
+
+        .progress-container { margin: 15px 0; }
+        .progress-bar { height: 8px; background: rgba(255,255,255,0.1); border-radius: 10px; overflow: hidden; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #ffce00, #ffaa00); transition: 1s ease; }
+        .slots-text { display: flex; justify-content: space-between; font-size: 12px; margin-top: 6px; color: #ccc; }
+
+        .join-btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 15px;
+            background: var(--primary);
+            color: #000;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 5px 15px rgba(255, 206, 0, 0.2);
+        }
+        .join-btn:disabled { background: #444; color: #888; box-shadow: none; cursor: not-allowed; }
+        .join-btn:active:not(:disabled) { transform: scale(0.97); }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background: rgba(15, 12, 41, 0.98);
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(20px);
+            z-index: 1000;
+        }
+        .nav-item { color: #888; text-decoration: none; text-align: center; position: relative; font-size: 11px; flex: 1; transition: 0.3s; }
+        .nav-item i { font-size: 22px; display: block; margin-bottom: 5px; }
+        .nav-item.active { color: var(--primary); }
+        
+        .notif-dot {
+            position: absolute;
+            top: 2px;
+            right: 32%;
+            height: 8px;
+            width: 8px;
+            background: var(--secondary);
+            border-radius: 50%;
+            display: none;
+            border: 2px solid var(--bg-dark);
+        }
+
+        /* Skeleton Loader */
+        .skeleton { height: 200px; background: rgba(255,255,255,0.05); border-radius: 20px; margin-bottom: 20px; animation: pulse 1.5s infinite linear; }
+        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 0.8; } 100% { opacity: 0.5; } }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="logo">Z-PRO <span>MATCH</span></div>
+    <div class="coin-btn" onclick="checkAuth('zplus.html')">
+        <i class="fas fa-coins"></i>
+        <span id="coin-count">0</span>
+    </div>
+</header>
+
+<div class="container">
+    <div class="welcome-msg">
+        <h1 style="font-size: 22px;">হ্যালো, <span id="user-name" style="color: var(--primary);">গেস্ট!</span></h1>
+        <p style="font-size: 14px; color: #ccc;">আপনার পছন্দের টুর্নামেন্টে জয়েন করুন।</p>
+    </div>
+
+    <div class="section-header">
+        <div class="live-dot"></div>
+        <h2>চলতি টুর্নামেন্ট সমূহ</h2>
+    </div>
+
+    <div id="package-list">
+        <div class="skeleton"></div>
+        <div class="skeleton"></div>
+    </div>
+</div>
+
+<div style="height: 100px;"></div>
+
+<nav class="bottom-nav">
+    <a href="zhome.html" class="nav-item active"><i class="fas fa-home"></i>হোম</a>
+    <a href="javascript:void(0)" onclick="checkAuth('zstore.html')" class="nav-item"><i class="fas fa-gamepad"></i>স্টোর</a>
+    <a href="javascript:void(0)" onclick="checkAuth('zinbox.html')" class="nav-item">
+        <i class="fas fa-bell"></i>ইনবক্স
+        <span class="notif-dot" id="inbox-dot"></span>
+    </a>
+    <a href="javascript:void(0)" onclick="checkAuth('zaccount.html')" class="nav-item"><i class="fas fa-user-circle"></i>প্রোফাইল</a>
+</nav>
+
+<script src="config.js"></script>
+<script>
+    // ইউজারের ডাটা লোকাল স্টোরেজ থেকে আনা (Config ব্যবহার করে)
+    let zuserData = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEY)) || null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        setupUserUI();
+        loadPackages();
+        if(zuserData) {
+            startRealTimeSync();
+        }
+    });
+
+    // ইউজারের নাম ও কয়েন সেটআপ
+    function setupUserUI() {
+        if(zuserData) {
+            document.getElementById('user-name').innerText = zuserData.username;
+            document.getElementById('coin-count').innerText = zuserData.coins || 0;
+        }
+    }
+
+    // অথেন্টিকেশন চেক (সরাসরি পেজ রিডাইরেক্ট নয়, বরং সিকিউর চেক)
+    function checkAuth(target) {
+        if(!zuserData) {
+            window.location.href = 'zlogin.html';
+        } else {
+            window.location.href = target;
+        }
+    }
+
+    // প্যাকেজ লিস্ট লোড করা
+    async function loadPackages() {
+        const listDiv = document.getElementById('package-list');
+        try {
+            // callZAPI ফাংশন config.js থেকে আসছে
+            const data = await callZAPI('zsync'); 
+            
+            if(!data || !data.packages || data.packages.length === 0) {
+                listDiv.innerHTML = '<p style="text-align:center; color:#888;">বর্তমানে কোনো প্যাকেজ নেই।</p>';
+                return;
+            }
+
+            listDiv.innerHTML = ''; // স্কেলিটন রিমুভ
+
+            data.packages.forEach(pkg => {
+                const fillPercent = (pkg.joined_count / pkg.total_slots) * 100;
+                const card = document.createElement('div');
+                card.className = 'package-card';
+                card.innerHTML = `
+                    <div class="timer-badge" id="timer-${pkg.package_id}">--:--:--</div>
+                    <div class="pkg-title">${pkg.title}</div>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-box">
+                            <span class="stat-label">পুরস্কার</span>
+                            <span class="stat-value">${CONFIG.Taka_SYMBOL}${pkg.prize_pool}</span>
+                        </div>
+                        <div class="stat-box">
+                            <span class="stat-label">এন্ট্রি ফি</span>
+                            <span class="stat-value">${CONFIG.CURRENCY_SYMBOL}${pkg.entry_fee}</span>
+                        </div>
+                    </div>
+
+                    <div class="progress-container">
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${fillPercent}%"></div>
+                        </div>
+                        <div class="slots-text">
+                            <span>ভর্তি: ${pkg.joined_count} জন</span>
+                            <span>বাকি: ${pkg.total_slots - pkg.joined_count} সিট</span>
+                        </div>
+                    </div>
+
+                    <button class="join-btn" 
+                        onclick="checkAuth('zpurchase.html?id=${pkg.package_id}')"
+                        ${pkg.joined_count >= pkg.total_slots ? 'disabled' : ''}>
+                        ${pkg.joined_count >= pkg.total_slots ? 'ম্যাচ ফুল' : 'ম্যাচে জয়েন করুন'}
+                    </button>
+                `;
+                listDiv.appendChild(card);
+                initCountdown(`timer-${pkg.package_id}`, pkg.start_time);
+            });
+
+        } catch (err) {
+            listDiv.innerHTML = '<p style="text-align:center; color:red;">সার্ভার কানেকশন এরর!</p>';
+        }
+    }
+
+    // রিয়েল টাইম কাউন্টডাউন টাইমার
+    function initCountdown(elementId, targetDate) {
+        const el = document.getElementById(elementId);
+        const target = new Date(targetDate).getTime();
+
+        const timerFunc = setInterval(() => {
+            const now = new Date().getTime();
+            const diff = target - now;
+
+            if (diff <= 0) {
+                clearInterval(timerFunc);
+                el.innerText = "শুরু হয়েছে";
+                el.style.background = "#555";
+                return;
+            }
+
+            const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const s = Math.floor((diff % (1000 * 60)) / 1000);
+
+            el.innerText = d > 0 ? `${d}d ${h}h ${m}m` : `${h}h ${m}m ${s}s`;
+        }, 1000);
+    }
+
+    // রিয়েল-টাইম ব্যালেন্স ও নোটিফিকেশন সিঙ্ক
+    function startRealTimeSync() {
+        setInterval(async () => {
+            try {
+                const data = await callZAPI(`zsync?username=${zuserData.username}`);
+                if(data) {
+                    // কয়েন আপডেট
+                    document.getElementById('coin-count').innerText = data.userCoins;
+                    // ইনবক্স ডট আপডেট
+                    document.getElementById('inbox-dot').style.display = data.hasUnread ? 'block' : 'none';
+                    
+                    // লোকাল ডাটা রিফ্রেশ (যাতে অন্য পেজে সমস্যা না হয়)
+                    zuserData.coins = data.userCoins;
+                    CONFIG.saveUser(zuserData);
+                }
+            } catch (e) { console.log("Sync Error"); }
+        }, 5000); // ৫ সেকেন্ড পর পর আপডেট হবে
+    }
+</script>
+
+</body>
+</html>
